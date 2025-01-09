@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import TestResult from '../models/TestResult';
-import Question from '../models/Question'; // Zakładamy, że model pytania jest w tym pliku
+import Question from '../models/Question';
 
 export const saveTestResult = async (req: Request, res: Response) => {
   const { userId, answers } = req.body;
@@ -19,19 +19,29 @@ export const saveTestResult = async (req: Request, res: Response) => {
       return null;
     }));
 
+    console.log('Detailed Answers:', detailedAnswers);
+
+    const filteredAnswers = detailedAnswers.filter(answer => answer !== null);
+
+    console.log('Filtered Answers:', filteredAnswers);
+
     // Zapisz wynik testu
     const testResult = new TestResult({
       userId,
       score,
-      answers: detailedAnswers.filter(answer => answer !== null), // Filtruj nullowe odpowiedzi
+      answers: filteredAnswers,
     });
+
+    console.log('Test Result Object:', testResult);
 
     await testResult.save();
     res.status(201).json({ message: 'Wynik testu zapisany pomyślnie', testResult });
   } catch (error) {
+    console.error('Błąd podczas zapisu wyniku testu:', error); // Log błędu
     res.status(500).json({ message: 'Błąd serwera', error });
   }
 };
+
 
 export const getUserStats = async (req: Request, res: Response) => {
   const { userId } = req.params;
@@ -40,6 +50,7 @@ export const getUserStats = async (req: Request, res: Response) => {
     const testResults = await TestResult.find({ userId }).sort({ date: -1 });
     res.status(200).json(testResults);
   } catch (error) {
+    console.error('Błąd podczas pobierania statystyk:', error);
     res.status(500).json({ message: 'Błąd serwera', error });
   }
 };

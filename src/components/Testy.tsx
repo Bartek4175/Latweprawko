@@ -23,12 +23,17 @@ const Testy: React.FC = () => {
   const [currentQuestion, setCurrentQuestion] = useState<number>(0);
   const [score, setScore] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<number>(25 * 60); // 25 minut w sekundach
+  const [startTime, setStartTime] = useState<number>(0);
+  const [answerTimes, setAnswerTimes] = useState<
+    { questionId: string; timeSpent: number }[]
+  >([]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/test/exam-questions');
         setQuestions(response.data);
+        setStartTime(Date.now());
       } catch (error) {
         console.error('Błąd podczas pobierania pytań:', error);
       }
@@ -45,6 +50,14 @@ const Testy: React.FC = () => {
   }, [timeLeft]);
 
   const handleAnswerClick = (isCorrect: boolean, points: number) => {
+    const endTime = Date.now();
+    const timeSpent = (endTime - startTime) / 1000;
+
+    setAnswerTimes((prev) => [
+      ...prev,
+      { questionId: questions[currentQuestion]._id, timeSpent },
+    ]);
+
     if (isCorrect) {
       setScore(score + points);
     }
@@ -52,9 +65,22 @@ const Testy: React.FC = () => {
     const nextQuestion = currentQuestion + 1;
     if (nextQuestion < questions.length) {
       setCurrentQuestion(nextQuestion);
+      setStartTime(Date.now());
     } else {
-      // Tutaj można dodać logikę kończącą test, np. wyświetlenie wyniku
+      saveResults();
       alert(`Koniec testu! Twój wynik: ${score} punktów.`);
+    }
+  };
+
+  const saveResults = async () => {
+    try {
+      await axios.post('http://localhost:5000/api/test-results/save', {
+        userId: 'USER_ID_PLACEHOLDER', // Uzupełnić ID użytkownika
+        answers: answerTimes,
+      });
+      console.log('Wyniki zapisane pomyślnie');
+    } catch (error) {
+      console.error('Błąd podczas zapisu wyników:', error);
     }
   };
 
@@ -68,8 +94,14 @@ const Testy: React.FC = () => {
     <div>
       <h1>Egzamin teoretyczny na prawo jazdy</h1>
       <div>
-        <p>Czas pozostały: {Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? '0' : ''}{timeLeft % 60}</p>
-        <p>Pytanie {currentQuestion + 1} / {questions.length}</p>
+        <p>
+          Czas pozostały: {Math.floor(timeLeft / 60)}:
+          {timeLeft % 60 < 10 ? '0' : ''}
+          {timeLeft % 60}
+        </p>
+        <p>
+          Pytanie {currentQuestion + 1} / {questions.length}
+        </p>
         <p>{question.content}</p>
         {question.media && (
           <div>
@@ -81,7 +113,7 @@ const Testy: React.FC = () => {
           </div>
         )}
         <div>
-          {question.answers.map(answer => (
+          {question.answers.map((answer) => (
             <button
               key={answer.option}
               onClick={() => handleAnswerClick(answer.isCorrect, question.points)}

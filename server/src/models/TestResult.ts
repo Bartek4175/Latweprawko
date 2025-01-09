@@ -8,6 +8,7 @@ interface ITestResult extends Document {
     questionId: mongoose.Types.ObjectId;
     answer: string;
     correct: boolean;
+    timeSpent: number;
   }[];
 }
 
@@ -20,6 +21,7 @@ const TestResultSchema: Schema = new Schema({
       questionId: { type: mongoose.Types.ObjectId, required: true },
       answer: { type: String, required: true },
       correct: { type: Boolean, required: true },
+      timeSpent: { type: Number, required: false, default: 0 },
     },
   ],
 });

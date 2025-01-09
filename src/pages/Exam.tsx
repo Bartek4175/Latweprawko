@@ -9,31 +9,43 @@ interface ExamProps {
   questions: Question[];
   onAnswer: (questionId: string, answer: string) => void;
   userId: string; // Dodano userId jako props
+  useOptimizedQuestions?: boolean; // Dodano flagę do sterowania algorytmem optymalizacji
 }
 
-const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId }) => {
+const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId, useOptimizedQuestions = true }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [totalQuestions] = useState(questions.length);
   const [timer, setTimer] = useState(1500); // 25 minut w sekundach
   const [reviewTime, setReviewTime] = useState(20); // 20 sekund na zapoznanie się z pytaniem
   const [answerTime, setAnswerTime] = useState(15); // 15 sekund na udzielenie odpowiedzi
   const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({});
+  const [answerTimes, setAnswerTimes] = useState<{ [key: number]: number }>({}); // Czas odpowiedzi na pytania
   const [answeredQuestions, setAnsweredQuestions] = useState<{ [key: number]: boolean }>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isExamEnded, setIsExamEnded] = useState(false);
   const [isMediaEnded, setIsMediaEnded] = useState(false);
+  const [questionStartTime, setQuestionStartTime] = useState<number | null>(null); // Czas rozpoczęcia pytania
 
   const handleNextQuestion = useCallback(() => {
+    if (questionStartTime !== null) {
+      const currentTime = Date.now();
+      const timeSpent = Math.floor((currentTime - questionStartTime) / 1000);
+      console.log(`Czas spędzony na pytaniu ${currentQuestionIndex + 1}: ${timeSpent} sekund`);
+      setAnswerTimes(prev => ({ ...prev, [currentQuestionIndex]: timeSpent }));
+    }
+
     setIsLoading(true);
     setIsMediaEnded(false);
+
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setReviewTime(20);
       setAnswerTime(15);
+      setQuestionStartTime(Date.now()); // Ustawianie czasu startu dla nowego pytania
     } else {
-      handleEndExam(); // Zapisz wynik egzaminu na końcu
+      handleEndExam();
     }
-  }, [currentQuestionIndex, questions.length]);
+  }, [currentQuestionIndex, questions.length, questionStartTime]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -51,6 +63,7 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId }) => {
           setReviewTime(prevReviewTime => prevReviewTime - 1);
         }, 1000);
       } else if (answerTime > 0) {
+        if (!questionStartTime) setQuestionStartTime(Date.now());
         interval = setInterval(() => {
           setAnswerTime(prevAnswerTime => prevAnswerTime - 1);
         }, 1000);
@@ -59,7 +72,7 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId }) => {
       }
     }
     return () => clearInterval(interval);
-  }, [reviewTime, answerTime, isMediaEnded, handleNextQuestion]);
+  }, [reviewTime, answerTime, isMediaEnded, handleNextQuestion, questionStartTime]);
 
   const handleAnswer = (answer: string) => {
     const currentQuestion = questions[currentQuestionIndex];
@@ -72,19 +85,26 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId }) => {
       [currentQuestionIndex]: true,
     }));
     onAnswer(currentQuestion._id, answer);
-    setReviewTime(0); // Przejdź od razu do czasu na odpowiedź
+    setReviewTime(0);
   };
 
   const handleEndExam = async () => {
+    if (questionStartTime !== null) {
+      const currentTime = Date.now();
+      const timeSpent = Math.floor((currentTime - questionStartTime) / 1000);
+      setAnswerTimes((prev) => ({ ...prev, [currentQuestionIndex]: timeSpent }));
+    }
+
     try {
-      const response = await axios.post('http://localhost:5000/api/test-results/save', {
+      await axios.post('http://localhost:5000/api/test-results/save', {
         userId,
         answers: Object.entries(selectedAnswers).map(([index, answer]) => ({
           questionId: questions[parseInt(index)]._id,
           answer,
+          timeSpent: answerTimes[parseInt(index)] || 0, // Użyj `timeSpent` zamiast `time`
         })),
       });
-      console.log('Wynik egzaminu zapisany', response.data);
+      console.log('Wynik egzaminu zapisany.');
     } catch (error) {
       console.error('Błąd podczas zapisywania wyniku egzaminu:', error);
     }
@@ -127,39 +147,44 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId }) => {
         <div className="question-progress">
           Pytanie {currentQuestionIndex + 1} z {totalQuestions}
         </div>
+        {useOptimizedQuestions && (
+          <div className="optimized-questions-icon" title="Optymalizacja pytań włączona">
+            <img src="/icons/lightning.png" alt="Optymalizacja pytań" style={{ width: '20px', height: '20px' }} />
+          </div>
+        )}
       </div>
       <div className="exam-main">
         <div className="question-media" style={{ width: '100%', maxWidth: '600px', height: 'auto' }}>
           {currentQuestion.media ? (
             currentQuestion.media.endsWith('.wmv') ? (
               <ReactPlayer
-                key={currentQuestionIndex} // Reset ReactPlayer dla każdego pytania
+                key={currentQuestionIndex}
                 url={"/materialy/" + currentQuestion.media.replace('.wmv', '.mp4')}
                 playing
-                controls={false} // Wyłączamy kontrolki
+                controls={false}
                 onPlay={handleMediaReady}
                 onReady={handleMediaReady}
-                onEnded={handleVideoEnd} // Automatycznie zakończ czas na zapoznanie się po zakończeniu filmu
-                onError={handleMediaError} // Obsługa błędów wczytywania
+                onEnded={handleVideoEnd}
+                onError={handleMediaError}
                 width="100%"
                 height="100%"
               />
             ) : (
               <img
-                key={currentQuestionIndex} // Reset img dla każdego pytania
+                key={currentQuestionIndex}
                 src={"/materialy/" + currentQuestion.media}
                 alt="media"
-                onLoad={() => { handleMediaReady(); setIsMediaEnded(true); }} // Obsługa załadowania obrazu
+                onLoad={() => { handleMediaReady(); setIsMediaEnded(true); }}
                 onError={handleMediaError}
                 style={{ width: '100%', height: 'auto' }}
               />
             )
           ) : (
             <img
-              key={currentQuestionIndex} // Reset img dla każdego pytania
+              key={currentQuestionIndex}
               src={"/materialy/brak.png"}
               alt="media"
-              onLoad={() => { handleMediaReady(); setIsMediaEnded(true); }} // Obsługa załadowania obrazu
+              onLoad={() => { handleMediaReady(); setIsMediaEnded(true); }}
               onError={handleMediaError}
               style={{ width: '100%', height: 'auto' }}
             />

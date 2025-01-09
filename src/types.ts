@@ -24,6 +24,7 @@ export interface TestResult {
     questionId: string;
     answer: string;
     correct: boolean;
+    timeSpent?: number; // czas odpowiedzi w sekundach
   }[];
 }
 
@@ -32,4 +33,5 @@ export interface User {
   email: string;
   role: 'user' | 'admin';
   packageExpiration?: Date;
+  useOptimizedQuestions: boolean;
 }

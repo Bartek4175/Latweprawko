@@ -138,6 +138,27 @@ export const exportUserData = async (req: CustomRequest, res: Response) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+export const updateUserSettings = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { useOptimizedQuestions } = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { useOptimizedQuestions },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'Settings updated', user });
+  } catch (error) {
+    console.error('Error updating user settings:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
 export const purchasePackage = async (req: CustomRequest, res: Response) => {
   const { days } = req.body;
 

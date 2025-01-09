@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Form, Button, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import { User } from '../types';
 
 interface ProfileProps {
   user: User;
-  onUserUpdate: (user: User) => void; // Dodano callback do aktualizacji użytkownika
+  onUserUpdate: (user: User) => void;
 }
 
 const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate }) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [useOptimizedQuestions, setUseOptimizedQuestions] = useState<boolean>(user.useOptimizedQuestions || true);
   const [message, setMessage] = useState('');
 
   const fetchUserData = async () => {
@@ -22,6 +23,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate }) => {
         }
       });
       onUserUpdate(response.data);
+      setUseOptimizedQuestions(response.data.useOptimizedQuestions);
     } catch (error) {
       console.error('Błąd podczas odświeżania danych użytkownika', error);
     }
@@ -33,27 +35,40 @@ const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate }) => {
       return;
     }
     try {
-      await axios.put('http://localhost:5000/api/users/change-password', {
-        currentPassword,
-        newPassword,
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+      await axios.put(
+        'http://localhost:5000/api/users/change-password',
+        { currentPassword, newPassword },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }
-      });
+      );
       setMessage('Hasło zostało zmienione pomyślnie.');
-      await fetchUserData(); // Odśwież dane użytkownika po zmianie hasła
+      await fetchUserData();
     } catch (error) {
       setMessage('Błąd podczas zmiany hasła.');
+    }
+  };
+
+  const handleOptimizedQuestionsToggle = async () => {
+    try {
+      await axios.put(
+        `http://localhost:5000/api/users/settings/${user._id}`,
+        { useOptimizedQuestions },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        }
+      );
+      setMessage('Ustawienia zostały zaktualizowane.');
+      await fetchUserData();
+    } catch (error) {
+      setMessage('Błąd podczas aktualizacji ustawień.');
     }
   };
 
   const handleDeleteAccount = async () => {
     try {
       await axios.delete('http://localhost:5000/api/users/delete-account', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        }
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setMessage('Konto zostało usunięte.');
     } catch (error) {
@@ -64,9 +79,7 @@ const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate }) => {
   const handleExportData = async () => {
     try {
       const response = await axios.get('http://localhost:5000/api/users/export-data', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         responseType: 'blob'
       });
       const blob = new Blob([response.data], { type: 'text/csv' });
@@ -81,6 +94,10 @@ const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate }) => {
       setMessage('Błąd podczas eksportowania danych.');
     }
   };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   return (
     <Container className="my-4">
@@ -121,6 +138,19 @@ const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate }) => {
         </Form.Group>
         <Button variant="primary" onClick={handlePasswordChange}>
           Zmień hasło
+        </Button>
+      </Form>
+      <Form className="mt-4">
+        <Form.Group controlId="formUseOptimizedQuestions">
+          <Form.Check
+            type="switch"
+            label="Używaj zoptymalizowanego algorytmu dobierania pytań"
+            checked={useOptimizedQuestions}
+            onChange={(e) => setUseOptimizedQuestions(e.target.checked)}
+          />
+        </Form.Group>
+        <Button variant="primary" onClick={handleOptimizedQuestionsToggle}>
+          Zapisz ustawienia
         </Button>
       </Form>
       <Button variant="danger" className="mt-3" onClick={handleDeleteAccount}>

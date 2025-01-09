@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { TestResult } from '../types';
 import { Container, Row, Col, Card, Badge, Spinner } from 'react-bootstrap';
-import { Bar, Doughnut } from 'react-chartjs-2';
+import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
+  PointElement,
+  LineElement,
   BarElement,
   Title,
   Tooltip,
@@ -15,7 +17,7 @@ import {
 } from 'chart.js';
 import '../styles/UserStats.css';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, ArcElement);
 
 interface UserStatsProps {
   userId: string;
@@ -28,20 +30,22 @@ const UserStats: React.FC<UserStatsProps> = ({ userId }) => {
   const [positiveTests, setPositiveTests] = useState(0);
   const [negativeTests, setNegativeTests] = useState(0);
   const [averageScore, setAverageScore] = useState(0);
+  const [averageTimePerQuestion, setAverageTimePerQuestion] = useState<number>(0);
 
   useEffect(() => {
     const fetchTestResults = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/test-results/stats/${userId}`);
-        const results = response.data;
+        const results: TestResult[] = response.data;
         setTestResults(results);
         setTotalTests(results.length);
-        const positive = results.filter((result: TestResult) => result.score >= 68).length;
-        const negative = results.filter((result: TestResult) => result.score < 68).length;
-        const average = results.reduce((sum: number, result: TestResult) => sum + result.score, 0) / results.length;
+        const positive = results.filter((result) => result.score >= 68).length;
+        const negative = results.filter((result) => result.score < 68).length;
+        const average = results.reduce((sum, result) => sum + result.score, 0) / results.length;
         setPositiveTests(positive);
         setNegativeTests(negative);
-        setAverageScore(parseFloat(average.toFixed(2))); // Konwertowanie wyniku z powrotem na liczbę
+        setAverageScore(parseFloat(average.toFixed(2)));
+        calculateAverageTime(results);
         setIsLoading(false);
       } catch (error) {
         console.error('Błąd podczas pobierania statystyk użytkownika:', error);
@@ -51,6 +55,17 @@ const UserStats: React.FC<UserStatsProps> = ({ userId }) => {
 
     fetchTestResults();
   }, [userId]);
+
+  const calculateAverageTime = (results: TestResult[]) => {
+    const totalQuestions = results.reduce((sum, result) => sum + result.answers.length, 0);
+    const totalTime = results.reduce(
+      (sum, result) => sum + result.answers.reduce((acc, answer) => acc + (answer.timeSpent || 0), 0),
+      0
+    );
+
+    const averageTime = totalQuestions > 0 ? totalTime / totalQuestions : 0;
+    setAverageTimePerQuestion(Math.round(averageTime * 100) / 100);
+  };
 
   const calculateExamResult = (score: number) => {
     const isPass = score >= 68;
@@ -71,7 +86,7 @@ const UserStats: React.FC<UserStatsProps> = ({ userId }) => {
     ],
   };
 
-  const monthlyTestCounts = testResults.reduce((acc: { [key: string]: number }, result: TestResult) => {
+  const monthlyTestCounts = testResults.reduce((acc: { [key: string]: number }, result) => {
     const month = new Date(result.date).toLocaleString('default', { month: 'long' });
     if (!acc[month]) {
       acc[month] = 0;
@@ -89,6 +104,21 @@ const UserStats: React.FC<UserStatsProps> = ({ userId }) => {
         backgroundColor: '#007bff',
         borderColor: '#007bff',
         borderWidth: 1,
+      },
+    ],
+  };
+
+  const lineData = {
+    labels: testResults.map((result) => new Date(result.date).toLocaleDateString()),
+    datasets: [
+      {
+        label: 'Średni czas odpowiedzi (s)',
+        data: testResults.map((result) =>
+          result.answers.reduce((sum, answer) => sum + (answer.timeSpent || 0), 0) / result.answers.length
+        ),
+        borderColor: '#007bff',
+        backgroundColor: 'rgba(0,123,255,0.5)',
+        fill: true,
       },
     ],
   };
@@ -112,10 +142,15 @@ const UserStats: React.FC<UserStatsProps> = ({ userId }) => {
             <Card.Body>
               <Card.Title>Ogólne statystyki</Card.Title>
               <Card.Text>
-                <strong>Liczba testów:</strong> {totalTests}<br />
-                <strong>Pozytywne wyniki:</strong> {positiveTests}<br />
-                <strong>Negatywne wyniki:</strong> {negativeTests}<br />
+                <strong>Liczba testów:</strong> {totalTests}
+                <br />
+                <strong>Pozytywne wyniki:</strong> {positiveTests}
+                <br />
+                <strong>Negatywne wyniki:</strong> {negativeTests}
+                <br />
                 <strong>Średni wynik:</strong> {averageScore} / 74
+                <br />
+                <strong>Średni czas odpowiedzi:</strong> {averageTimePerQuestion} sekund
               </Card.Text>
             </Card.Body>
           </Card>
@@ -152,7 +187,8 @@ const UserStats: React.FC<UserStatsProps> = ({ userId }) => {
                 <Card.Body>
                   <Card.Title>Data: {new Date(result.date).toLocaleDateString()}</Card.Title>
                   <Card.Text>
-                    <strong>Wynik:</strong> <Badge bg={resultClass}>{resultText}</Badge><br />
+                    <strong>Wynik:</strong> <Badge bg={resultClass}>{resultText}</Badge>
+                    <br />
                     <strong>Punkty:</strong> {result.score} / 74
                   </Card.Text>
                 </Card.Body>
@@ -160,6 +196,18 @@ const UserStats: React.FC<UserStatsProps> = ({ userId }) => {
             </Col>
           );
         })}
+      </Row>
+      <Row className="mb-4">
+        <Col>
+          <Card className="shadow-sm h-100">
+            <Card.Body>
+              <Card.Title className="text-center">Średni czas odpowiedzi w czasie</Card.Title>
+              <div className="chart-container">
+                <Line data={lineData} />
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
       </Row>
     </Container>
   );
