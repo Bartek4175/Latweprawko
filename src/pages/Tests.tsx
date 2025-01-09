@@ -52,7 +52,8 @@ const Tests: React.FC<TestsProps> = ({ onQuestionsFetched, onStartExam }) => {
   const handleStartExam = () => {
     fetchQuestions();
     onStartExam();
-    navigate('/exam');
+    navigate('/exam', { state: { useOptimizedQuestions } });
+
   };
 
   return (

@@ -94,25 +94,51 @@ const getOptimizedExamQuestions = async (req: Request, res: Response) => {
 
     const allQuestions = await Question.find();
 
-    const availableQuestions = allQuestions.filter((question) => {
+    // Rozdzielenie pytań na podstawowe i specjalistyczne
+    const basicQuestions = allQuestions.filter(q => q.type === 'podstawowe');
+    const specialistQuestions = allQuestions.filter(q => q.type === 'specjalistyczne');
+
+    // Filtrowanie pytań podstawowych i specjalistycznych na podstawie wydajności użytkownika
+    const filteredBasicQuestions = basicQuestions.filter((question) => {
       const performance = questionPerformance.get((question._id as mongoose.Types.ObjectId).toString());
       if (performance && performance.correctCount >= 2 && performance.fastCorrectCount >= 2) {
         return false;
       }
       return true;
     });
-    
-    
 
-    const selectedQuestions = availableQuestions
+    const filteredSpecialistQuestions = specialistQuestions.filter((question) => {
+      const performance = questionPerformance.get((question._id as mongoose.Types.ObjectId).toString());
+      if (performance && performance.correctCount >= 2 && performance.fastCorrectCount >= 2) {
+        return false;
+      }
+      return true;
+    });
+
+    // Losowy wybór pytań: podstawowe na początku, specjalistyczne na końcu
+    const selectedBasicQuestions = filteredBasicQuestions
       .sort(() => 0.5 - Math.random())
-      .slice(0, 32);
+      .slice(0, 20); // Załóżmy, że 20 pytań podstawowych
 
-    res.status(200).json(selectedQuestions);
+    const selectedSpecialistQuestions = filteredSpecialistQuestions
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 12); // Załóżmy, że 12 pytań specjalistycznych
+
+    // Połączenie pytań w odpowiedniej kolejności
+    const examQuestions = [...selectedBasicQuestions, ...selectedSpecialistQuestions];
+
+    // Sprawdzamy, czy liczba pytań jest poprawna
+    if (examQuestions.length !== 32) {
+      console.error('Nieprawidłowa liczba pytań:', examQuestions.length);
+      return res.status(500).json({ error: 'Nieprawidłowe dane pytań.' });
+    }
+
+    res.status(200).json(examQuestions);
   } catch (error) {
     console.error('Błąd serwera:', error);
     res.status(500).json({ message: 'Błąd serwera', error });
   }
 };
+
 
 export { getExamQuestions, saveAnswerTimes, getOptimizedExamQuestions };

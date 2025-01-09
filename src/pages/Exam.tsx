@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Question, Answer } from '../types';
+import { useLocation } from 'react-router-dom';
 import ReactPlayer from 'react-player';
 import '../styles/Exam.css'; // Importowanie stylów CSS
 import Summary from './Summary';
@@ -12,7 +13,9 @@ interface ExamProps {
   useOptimizedQuestions?: boolean; // Dodano flagę do sterowania algorytmem optymalizacji
 }
 
-const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId, useOptimizedQuestions = true }) => {
+const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId }) => {
+  const location = useLocation();
+  const { useOptimizedQuestions = true } = location.state || {};
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [totalQuestions] = useState(questions.length);
   const [timer, setTimer] = useState(1500); // 25 minut w sekundach
@@ -101,7 +104,7 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId, useOptimizedQu
         answers: Object.entries(selectedAnswers).map(([index, answer]) => ({
           questionId: questions[parseInt(index)]._id,
           answer,
-          timeSpent: answerTimes[parseInt(index)] || 0, // Użyj `timeSpent` zamiast `time`
+          timeSpent: answerTimes[parseInt(index)] || 0,
         })),
       });
       console.log('Wynik egzaminu zapisany.');
@@ -140,19 +143,24 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId, useOptimizedQu
     <div className="exam-container">
       {isLoading && <div className="loading">Ładowanie...</div>}
       <div className="exam-header">
-        <div className="points-value">Wartość punktowa: {currentQuestion.points || 0}</div>
-        <div className="category">Kategoria: B</div>
-        <div className="timer">Czas do końca testu: {`${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}`}</div>
-        <button className="end-exam-button" onClick={handleEndExam}>Zakończ egzamin</button>
-        <div className="question-progress">
-          Pytanie {currentQuestionIndex + 1} z {totalQuestions}
-        </div>
-        {useOptimizedQuestions && (
-          <div className="optimized-questions-icon" title="Optymalizacja pytań włączona">
-            <img src="/icons/lightning.png" alt="Optymalizacja pytań" style={{ width: '20px', height: '20px' }} />
+          <div className="points-value">Wartość punktowa: {currentQuestion.points || 0}</div>
+          <div className="category">Kategoria: B</div>
+          <div className="timer">Czas do końca testu: {`${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}`}</div>
+          <button className="end-exam-button" onClick={handleEndExam}>Zakończ egzamin</button>
+          <div className="question-progress">
+            Pytanie {currentQuestionIndex + 1} z {totalQuestions}
           </div>
-        )}
-      </div>
+          {useOptimizedQuestions && (
+            <div
+              className="optimized-questions-icon"
+              title="Optymalizacja pytań włączona"
+              style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
+            >
+              <img src="/icons/lightning.png" alt="Optymalizacja pytań" style={{ width: '20px', height: '20px' }} />
+              <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Optymalizacja włączona</span>
+            </div>
+          )}
+        </div>
       <div className="exam-main">
         <div className="question-media" style={{ width: '100%', maxWidth: '600px', height: 'auto' }}>
           {currentQuestion.media ? (
