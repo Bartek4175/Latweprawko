@@ -5,14 +5,16 @@ import mongoose from 'mongoose';
 
 const getExamQuestions = async (req: Request, res: Response) => {
   try {
+    const { category = 'B' } = req.query; // Domyślna kategoria to 'B'
+
     const allQuestions = await Question.find();
 
     const basicQuestions = allQuestions.filter(q =>
-      q.category.split(',').includes('B') && q.type === 'podstawowe'
+      q.category.split(',').includes(category as string) && q.type === 'podstawowe'
     );
 
     const specialistQuestions = allQuestions.filter(q =>
-      q.category.split(',').includes('B') && q.type === 'specjalistyczne'
+      q.category.split(',').includes(category as string) && q.type === 'specjalistyczne'
     );
 
     const selectedBasicQuestions = [
@@ -41,7 +43,6 @@ const getExamQuestions = async (req: Request, res: Response) => {
   }
 };
 
-// Endpoint zapisujący czasy odpowiedzi
 const saveAnswerTimes = async (req: Request, res: Response) => {
   try {
     const { userId, answers } = req.body;
@@ -65,14 +66,13 @@ const saveAnswerTimes = async (req: Request, res: Response) => {
   }
 };
 
-// Pobieranie zoptymalizowanych pytań na podstawie wyników użytkownika
 const getOptimizedExamQuestions = async (req: Request, res: Response) => {
   const { userId } = req.params;
+  const { category = 'B' } = req.query;
 
   try {
     const testResults = await TestResult.find({ userId });
 
-    // Tworzymy mapę statystyk odpowiedzi użytkownika
     const questionPerformance = new Map<string, { correctCount: number; fastCorrectCount: number }>();
 
     testResults.forEach(result => {
@@ -94,11 +94,14 @@ const getOptimizedExamQuestions = async (req: Request, res: Response) => {
 
     const allQuestions = await Question.find();
 
-    // Rozdzielenie pytań na podstawowe i specjalistyczne
-    const basicQuestions = allQuestions.filter(q => q.type === 'podstawowe');
-    const specialistQuestions = allQuestions.filter(q => q.type === 'specjalistyczne');
+    const basicQuestions = allQuestions.filter(q =>
+      q.category.split(',').includes(category as string) && q.type === 'podstawowe'
+    );
 
-    // Filtrowanie pytań podstawowych i specjalistycznych na podstawie wydajności użytkownika
+    const specialistQuestions = allQuestions.filter(q =>
+      q.category.split(',').includes(category as string) && q.type === 'specjalistyczne'
+    );
+
     const filteredBasicQuestions = basicQuestions.filter((question) => {
       const performance = questionPerformance.get((question._id as mongoose.Types.ObjectId).toString());
       if (performance && performance.correctCount >= 2 && performance.fastCorrectCount >= 2) {
@@ -115,19 +118,16 @@ const getOptimizedExamQuestions = async (req: Request, res: Response) => {
       return true;
     });
 
-    // Losowy wybór pytań: podstawowe na początku, specjalistyczne na końcu
     const selectedBasicQuestions = filteredBasicQuestions
       .sort(() => 0.5 - Math.random())
-      .slice(0, 20); // Załóżmy, że 20 pytań podstawowych
+      .slice(0, 20);
 
     const selectedSpecialistQuestions = filteredSpecialistQuestions
       .sort(() => 0.5 - Math.random())
-      .slice(0, 12); // Załóżmy, że 12 pytań specjalistycznych
+      .slice(0, 12);
 
-    // Połączenie pytań w odpowiedniej kolejności
     const examQuestions = [...selectedBasicQuestions, ...selectedSpecialistQuestions];
 
-    // Sprawdzamy, czy liczba pytań jest poprawna
     if (examQuestions.length !== 32) {
       console.error('Nieprawidłowa liczba pytań:', examQuestions.length);
       return res.status(500).json({ error: 'Nieprawidłowe dane pytań.' });
@@ -139,6 +139,5 @@ const getOptimizedExamQuestions = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Błąd serwera', error });
   }
 };
-
 
 export { getExamQuestions, saveAnswerTimes, getOptimizedExamQuestions };

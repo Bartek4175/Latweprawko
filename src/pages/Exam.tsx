@@ -16,6 +16,7 @@ interface ExamProps {
 const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId }) => {
   const location = useLocation();
   const { useOptimizedQuestions = true } = location.state || {};
+  const { selectedCategory } = location.state || {};
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [totalQuestions] = useState(questions.length);
   const [timer, setTimer] = useState(1500); // 25 minut w sekundach
@@ -144,7 +145,7 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId }) => {
       {isLoading && <div className="loading">Ładowanie...</div>}
       <div className="exam-header">
           <div className="points-value">Wartość punktowa: {currentQuestion.points || 0}</div>
-          <div className="category">Kategoria: B</div>
+          <div className="category">Kategoria: {selectedCategory}</div>
           <div className="timer">Czas do końca testu: {`${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}`}</div>
           <button className="end-exam-button" onClick={handleEndExam}>Zakończ egzamin</button>
           <div className="question-progress">
