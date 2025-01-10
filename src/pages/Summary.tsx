@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Question } from '../types';
 import '../styles/Summary.css';
 import ReactModal from 'react-modal';
@@ -9,11 +10,13 @@ import { Chart, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend }
 interface SummaryProps {
   questions: Question[];
   selectedAnswers: { [key: number]: string };
+  category: string;
 }
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const Summary: React.FC<SummaryProps> = ({ questions, selectedAnswers }) => {
+const Summary: React.FC<SummaryProps> = ({ questions, selectedAnswers, category }) => {
+  const navigate = useNavigate();
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
 
@@ -23,7 +26,11 @@ const Summary: React.FC<SummaryProps> = ({ questions, selectedAnswers }) => {
     return selectedAnswer === correctAnswer ? sum + question.points : sum;
   }, 0);
 
-  const isPass = totalPoints >= 68;
+  const maxPoints = questions.reduce((sum, question) => sum + question.points, 0);
+
+  const requiredPoints = 68;
+
+  const isPass = totalPoints >= requiredPoints;
 
   const basicQuestions = questions.filter(q => q.type === 'podstawowe');
   const specialistQuestions = questions.filter(q => q.type === 'specjalistyczne');
@@ -70,12 +77,21 @@ const Summary: React.FC<SummaryProps> = ({ questions, selectedAnswers }) => {
     setCurrentQuestion(null);
   };
 
+  const handleRetry = () => {
+    navigate('/tests');
+  };
+
   return (
     <div className="summary-container">
       <h2>Podsumowanie egzaminu</h2>
-      <p className="total-points">Zdobyte punkty: {totalPoints}</p>
+      <p className="category">Kategoria: {category}</p>
+      <p className="total-points">Zdobyte punkty: {totalPoints} / {maxPoints}</p>
       <p className={`exam-result ${isPass ? 'positive' : 'negative'}`}>
         Wynik egzaminu: {isPass ? 'Pozytywny' : 'Negatywny'}
+      </p>
+      <p>
+        Wymagana liczba punktów do zaliczenia: {requiredPoints}<br />
+        Maksymalna liczba punktów: {maxPoints}
       </p>
       <div className="chart-container">
         <Bar
@@ -106,6 +122,7 @@ const Summary: React.FC<SummaryProps> = ({ questions, selectedAnswers }) => {
               <p>{question.content}</p>
               <p>Twoja odpowiedź: {selectedAnswer || 'Brak odpowiedzi'}</p>
               <p>Poprawna odpowiedź: {correctAnswer}</p>
+              <p><strong>Punkty za pytanie:</strong> {question.points}</p>
               {question.media && (
                 <button onClick={() => openModal(question)}>Pokaż {question.media.endsWith('.wmv') ? 'film' : 'zdjęcie'}</button>
               )}
@@ -113,7 +130,7 @@ const Summary: React.FC<SummaryProps> = ({ questions, selectedAnswers }) => {
           );
         })}
       </div>
-      <button onClick={() => window.location.reload()}>Spróbuj ponownie</button>
+      <button onClick={handleRetry}>Spróbuj ponownie</button>
 
       <ReactModal isOpen={modalIsOpen} onRequestClose={closeModal} className="media-modal" overlayClassName="media-overlay">
         {currentQuestion && (
@@ -121,6 +138,7 @@ const Summary: React.FC<SummaryProps> = ({ questions, selectedAnswers }) => {
             <h3>{currentQuestion.content}</h3>
             <p>Twoja odpowiedź: {selectedAnswers[questions.indexOf(currentQuestion)] || 'Brak odpowiedzi'}</p>
             <p>Poprawna odpowiedź: {currentQuestion.answers.find(answer => answer.isCorrect)?.option}</p>
+            <p><strong>Punkty za pytanie:</strong> {currentQuestion.points}</p>
             {currentQuestion.media && (
               currentQuestion.media.endsWith('.wmv') ? (
                 <ReactPlayer url={`/materialy/${currentQuestion.media.replace('.wmv', '.mp4')}`} playing controls width="100%" height="100%" />

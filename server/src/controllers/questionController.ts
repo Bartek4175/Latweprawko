@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Question from '../models/Question';
+import UserProgress from '../models/UserProgress';
 
 export const getQuestions = async (req: Request, res: Response) => {
   try {
@@ -47,5 +48,46 @@ export const getQuestionExplanation = async (req: Request, res: Response) => {
     }
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const updateUserProgress = async (req: Request, res: Response) => {
+  try {
+    const { userId, questionId, category, isReviewed } = req.body;
+
+    let progress = await UserProgress.findOne({ userId, questionId, category });
+
+    if (progress) {
+      progress.isReviewed = isReviewed;
+      await progress.save();
+    } else {
+      progress = new UserProgress({
+        userId,
+        questionId,
+        category,
+        isReviewed,
+      });
+      await progress.save();
+    }
+
+    res.status(200).json({ message: 'Postęp zapisany' });
+  } catch (error) {
+    res.status(500).json({ message: 'Błąd serwera' });
+  }
+};
+
+export const getTotalQuestionsInCategory = async (req: Request, res: Response) => {
+  try {
+    const { category } = req.query;
+
+    if (!category) {
+      return res.status(400).json({ message: 'Kategoria jest wymagana' });
+    }
+
+    const totalQuestions = await Question.countDocuments({ category });
+
+    res.json({ totalQuestions });
+  } catch (error) {
+    res.status(500).json({ message: 'Błąd serwera' });
   }
 };

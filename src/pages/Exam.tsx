@@ -137,8 +137,9 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId }) => {
   }, [currentQuestionIndex]);
 
   if (isExamEnded) {
-    return <Summary questions={questions} selectedAnswers={selectedAnswers} />;
+    return <Summary questions={questions} selectedAnswers={selectedAnswers} category={selectedCategory} />; // Przekazujemy kategorię
   }
+  
 
   return (
     <div className="exam-container">

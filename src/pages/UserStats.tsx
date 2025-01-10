@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { TestResult } from '../types';
+import { TestResult } from '../types'; 
 import { Container, Row, Col, Card, Badge, Spinner } from 'react-bootstrap';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import {
@@ -203,7 +203,7 @@ const UserStats: React.FC<UserStatsProps> = ({ userId }) => {
             <Card.Body>
               <Card.Title className="text-center">Średni czas odpowiedzi w czasie</Card.Title>
               <div className="chart-container">
-                <Line data={lineData} />
+                <Line data={lineData} options={{ responsive: true }} />
               </div>
             </Card.Body>
           </Card>

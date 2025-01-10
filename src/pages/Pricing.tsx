@@ -6,13 +6,46 @@ import { User } from '../types';
 
 interface PricingProps {
   user: User | null;
-  onUserUpdate: (user: User) => void; // Dodano callback do aktualizacji użytkownika
+  onUserUpdate: (user: User) => void;
 }
 
 const packages = [
-  { name: '3 dni', duration: 3, price: 9.99 },
-  { name: '30 dni', duration: 30, price: 29.99 },
-  { name: '90 dni', duration: 90, price: 79.99 },
+  {
+    name: '3 dni',
+    duration: 3,
+    price: 9.99,
+    pricePerDay: 9.99 / 3,
+    features: [
+      'Dostęp do pełnej bazy pytań',
+      'Zaawansowany algorytm wspomagający naukę',
+      'Dostęp do statystyk i postępów',
+      'Dostęp do nauki i przerabiania pytań',
+    ],
+  },
+  {
+    name: '30 dni',
+    duration: 30,
+    price: 29.99,
+    pricePerDay: 29.99 / 30,
+    features: [
+      'Dostęp do pełnej bazy pytań',
+      'Zaawansowany algorytm wspomagający naukę',
+      'Dostęp do statystyk i postępów',
+      'Dostęp do nauki i przerabiania pytań',
+    ],
+  },
+  {
+    name: '90 dni',
+    duration: 90,
+    price: 49.99,  // Zaktualizowana cena pakietu 90 dni
+    pricePerDay: 49.99 / 90,  // Nowa cena dzienna
+    features: [
+      'Dostęp do pełnej bazy pytań',
+      'Zaawansowany algorytm wspomagający naukę',
+      'Dostęp do statystyk i postępów',
+      'Dostęp do nauki i przerabiania pytań',
+    ],
+  },
 ];
 
 const Pricing: React.FC<PricingProps> = ({ user, onUserUpdate }) => {
@@ -55,6 +88,10 @@ const Pricing: React.FC<PricingProps> = ({ user, onUserUpdate }) => {
     }
   };
 
+  const getPricePerDay = (price: number, duration: number) => {
+    return (price / duration).toFixed(2);
+  };
+
   return (
     <Container className="my-4">
       <h1>Cennik</h1>
@@ -71,7 +108,17 @@ const Pricing: React.FC<PricingProps> = ({ user, onUserUpdate }) => {
             <Card className="mb-4">
               <Card.Body>
                 <Card.Title>{pkg.name}</Card.Title>
-                <Card.Text>Cena: {pkg.price} zł</Card.Text>
+                <Card.Text>
+                  <strong>Cena: {pkg.price} zł</strong>
+                  <br />
+                  <strong>Co zawiera pakiet:</strong>
+                  <div style={{ paddingLeft: '20px' }}>
+                    {pkg.features.map((feature, index) => (
+                      <div key={index}>{feature}</div>
+                    ))}
+                  </div>
+                  <strong>Cena dzienna: {getPricePerDay(pkg.price, pkg.duration)} zł</strong>
+                </Card.Text>
                 <Button variant="primary" onClick={() => handlePurchase(pkg.duration)}>
                   Kup teraz
                 </Button>

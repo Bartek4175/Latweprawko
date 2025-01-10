@@ -16,13 +16,13 @@ export interface IQuestion extends Document {
   type: string;
 }
 
-const answerSchema = new Schema<IAnswer>({
+const answerSchema = new Schema<IAnswer>( {
   option: { type: String, required: true },
   content: { type: String, required: true },
   isCorrect: { type: Boolean, required: true },
 });
 
-const questionSchema = new Schema<IQuestion>({
+const questionSchema = new Schema<IQuestion>( {
   numerPytania: { type: String, required: true },
   content: { type: String, required: true },
   media: { type: String },

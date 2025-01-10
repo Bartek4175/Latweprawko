@@ -11,18 +11,31 @@ const Learn: React.FC = () => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [questionType, setQuestionType] = useState('losowe'); // Domyślnie 'losowe'
+  const [completedQuestions, setCompletedQuestions] = useState<string[]>([]); // Przechowywanie przerobionych pytań
+  const [category, setCategory] = useState<string>('B'); // Kategoria pytań
+  const [totalQuestions, setTotalQuestions] = useState<number>(0); // Liczba wszystkich pytań w danej kategorii
+
+  const categories = [
+    'A', 'A1', 'A2', 'AM', 'B', 'B1', 'C', 'C1', 'D', 'D1', 'PT', 'T'
+  ];
 
   const fetchRandomQuestion = async () => {
     try {
       setIsLoading(true);
-      setShowExplanation(false); // Ukryj wytłumaczenie przy każdym nowym pytaniu
-      setExplanation(null); // Wyzeruj poprzednie wyjaśnienie
+      setShowExplanation(false);
+      setExplanation(null);
       const response = await axios.get('http://localhost:5000/api/questions/random-question', {
-        params: { type: questionType === 'losowe' ? undefined : questionType, category: 'B' }
+        params: { type: questionType === 'losowe' ? undefined : questionType, category }
       });
-      setCurrentQuestion(response.data);
-      setSelectedAnswer(null);
-      setIsLoading(false);
+
+      // Jeśli pytanie już zostało przerobione, pobieramy kolejne
+      if (completedQuestions.includes(response.data._id)) {
+        fetchRandomQuestion();
+      } else {
+        setCurrentQuestion(response.data);
+        setSelectedAnswer(null);
+        setIsLoading(false);
+      }
     } catch (error) {
       console.error('Błąd podczas pobierania pytania:', error);
       setIsLoading(false);
@@ -38,9 +51,21 @@ const Learn: React.FC = () => {
     }
   };
 
+  const fetchTotalQuestions = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/questions/total-questions', {
+        params: { category }
+      });
+      setTotalQuestions(response.data.totalQuestions); 
+    } catch (error) {
+      console.error('Błąd przy pobieraniu liczby pytań:', error);
+    }
+  };
+  
   useEffect(() => {
     fetchRandomQuestion();
-  }, [questionType]); // Fetch question when questionType changes
+    fetchTotalQuestions(); // Fetch total questions when category changes
+  }, [questionType, category]);
 
   const handleAnswer = (answer: string) => {
     setSelectedAnswer(answer);
@@ -52,6 +77,10 @@ const Learn: React.FC = () => {
 
   const handleTypeChange = (type: string) => {
     setQuestionType(type);
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setCategory(category);
   };
 
   const handleShowExplanation = () => {
@@ -85,7 +114,7 @@ const Learn: React.FC = () => {
                 controls={false} // Wyłączamy kontrolki
                 onPlay={() => setIsLoading(false)}
                 onReady={() => setIsLoading(false)}
-                onEnded={() => {}} // Automatycznie zakończ czas na zapoznanie się po zakończeniu filmu
+                onEnded={() => {}}
                 onError={() => setIsLoading(false)} // Obsługa błędów wczytywania
                 width="100%"
                 height="100%"
@@ -119,7 +148,7 @@ const Learn: React.FC = () => {
                 key={index}
                 onClick={() => handleAnswer(answer.option)}
                 className={`answer-button ${selectedAnswer === answer.option ? (answer.isCorrect ? 'correct' : 'incorrect') : ''}`}
-                style={{ width: '100%' }} // Dodanie szerokości 100% dla przycisków odpowiedzi
+                style={{ width: '100%' }}
               >
                 {answer.content}
               </button>
@@ -167,6 +196,26 @@ const Learn: React.FC = () => {
         </div>
         <button className="next-button" onClick={handleNextQuestion}>Następne pytanie</button>
       </div>
+
+      <main className="flex-grow-1">
+        <div className="learn-container">
+          <div className="learn-header">
+            <div className="points-value">Postęp</div>
+          </div>
+          <div className="progress-info">
+            <p>Postęp: {completedQuestions.length} / {totalQuestions} pytań</p>
+          </div>
+          <div className="category-selection">
+            <select onChange={(e) => handleCategoryChange(e.target.value)} value={category}>
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  Kategoria {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };
