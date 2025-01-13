@@ -175,3 +175,50 @@
   max-width: 600px;
   margin: 0 auto;
 }
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background-color: #ddd;
+  border-radius: 10px;
+}
+
+.progress-bar-filled {
+  height: 100%;
+  background-color: #66fcf1;
+  border-radius: 10px;
+}
+.replay-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.replay-button:hover {
+  background-color: #0056b3;
+}
+
+.replay-button svg {
+  margin-right: 5px;
+}
+.replay-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 50%;
+}
+
+.replay-icon svg {
+  width: 40px;
+  height: 40px;
+  color: white;
+}

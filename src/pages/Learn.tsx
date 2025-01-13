@@ -10,10 +10,12 @@ const Learn: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showExplanation, setShowExplanation] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
-  const [questionType, setQuestionType] = useState('losowe'); // Domyślnie 'losowe'
-  const [completedQuestions, setCompletedQuestions] = useState<string[]>([]); // Przechowywanie przerobionych pytań
-  const [category, setCategory] = useState<string>('B'); // Kategoria pytań
-  const [totalQuestions, setTotalQuestions] = useState<number>(0); // Liczba wszystkich pytań w danej kategorii
+  const [questionType, setQuestionType] = useState('losowe');
+  const [completedQuestions, setCompletedQuestions] = useState<string[]>([]);
+  const [category, setCategory] = useState<string>('B');
+  const [totalQuestions, setTotalQuestions] = useState<number>(0);
+  const [isVideoEnded, setIsVideoEnded] = useState(false);  // Nowy stan do śledzenia zakończenia wideo
+  const [videoKey, setVideoKey] = useState(0); // Stan do wymuszania odtworzenia wideo
 
   const categories = [
     'A', 'A1', 'A2', 'AM', 'B', 'B1', 'C', 'C1', 'D', 'D1', 'PT', 'T'
@@ -28,7 +30,6 @@ const Learn: React.FC = () => {
         params: { type: questionType === 'losowe' ? undefined : questionType, category }
       });
 
-      // Jeśli pytanie już zostało przerobione, pobieramy kolejne
       if (completedQuestions.includes(response.data._id)) {
         fetchRandomQuestion();
       } else {
@@ -56,15 +57,15 @@ const Learn: React.FC = () => {
       const response = await axios.get('http://localhost:5000/api/questions/total-questions', {
         params: { category }
       });
-      setTotalQuestions(response.data.totalQuestions); 
+      setTotalQuestions(response.data.totalQuestions);
     } catch (error) {
       console.error('Błąd przy pobieraniu liczby pytań:', error);
     }
   };
-  
+
   useEffect(() => {
     fetchRandomQuestion();
-    fetchTotalQuestions(); // Fetch total questions when category changes
+    fetchTotalQuestions();
   }, [questionType, category]);
 
   const handleAnswer = (answer: string) => {
@@ -73,6 +74,7 @@ const Learn: React.FC = () => {
 
   const handleNextQuestion = () => {
     fetchRandomQuestion();
+    setIsVideoEnded(false);  // Resetujemy stan po przejściu do kolejnego pytania
   };
 
   const handleTypeChange = (type: string) => {
@@ -90,6 +92,15 @@ const Learn: React.FC = () => {
     }
   };
 
+  const handleReplayVideo = () => {
+    setIsVideoEnded(false);  // Resetujemy stan i ponownie uruchamiamy wideo
+    setVideoKey((prevKey) => prevKey + 1); // Zmieniamy key, aby ponownie odtworzyć wideo
+  };
+
+  const handleVideoEnded = () => {
+    setIsVideoEnded(true);  // Ustawiamy stan na zakończone wideo
+  };
+
   if (isLoading) {
     return <div className="loading">Ładowanie...</div>;
   }
@@ -104,37 +115,47 @@ const Learn: React.FC = () => {
         <div className="points-value">Nauka: Pytanie {questionType}</div>
       </div>
       <div className="learn-main">
-        <div className="question-media" style={{ width: '100%', maxWidth: '600px', height: 'auto' }}>
+        <div className="question-media" style={{ width: '100%', maxWidth: '600px', height: 'auto', position: 'relative' }}>
           {currentQuestion.media ? (
             currentQuestion.media.endsWith('.wmv') ? (
-              <ReactPlayer
-                key={currentQuestion._id} // Reset ReactPlayer dla każdego pytania
-                url={"/materialy/" + currentQuestion.media.replace('.wmv', '.mp4')}
-                playing
-                controls={false} // Wyłączamy kontrolki
-                onPlay={() => setIsLoading(false)}
-                onReady={() => setIsLoading(false)}
-                onEnded={() => {}}
-                onError={() => setIsLoading(false)} // Obsługa błędów wczytywania
-                width="100%"
-                height="100%"
-              />
+              <div>
+                <ReactPlayer
+                  key={videoKey} // Zmieniamy key, aby wymusić ponowne odtworzenie
+                  url={"/materialy/" + currentQuestion.media.replace('.wmv', '.mp4')}
+                  playing
+                  controls={false}
+                  onPlay={() => setIsLoading(false)}
+                  onReady={() => setIsLoading(false)}
+                  onEnded={handleVideoEnded}  // Dodanie obsługi zakończenia wideo
+                  onError={() => setIsLoading(false)}
+                  width="100%"
+                  height="100%"
+                />
+                {isVideoEnded && (
+                  <div className="replay-icon" onClick={handleReplayVideo}>
+                    {/* Ikona SVG do odtworzenia */}
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.88 118.66" width="40" height="40">
+                      <path d="M16.68,22.2c-1.78,2.21-3.43,4.55-5.06,7.46C5.63,40.31,3.1,52.39,4.13,64.2c1.01,11.54,5.43,22.83,13.37,32.27 c2.85,3.39,5.91,6.38,9.13,8.97c11.11,8.93,24.28,13.34,37.41,13.22c13.13-0.12,26.21-4.78,37.14-13.98 c3.19-2.68,6.18-5.73,8.91-9.13c6.4-7.96,10.51-17.29,12.07-27.14c1.53-9.67,0.59-19.83-3.07-29.66 c-3.49-9.35-8.82-17.68-15.78-24.21C96.7,8.33,88.59,3.76,79.2,1.48c-2.94-0.71-5.94-1.18-8.99-1.37c-3.06-0.2-6.19-0.13-9.4,0.22 c-2.01,0.22-3.46,2.03-3.24,4.04c0.22,2.01,2.03,3.46,4.04,3.24c2.78-0.31,5.49-0.37,8.14-0.19c2.65,0.17,5.23,0.57,7.73,1.17 c8.11,1.96,15.1,5.91,20.84,11.29c6.14,5.75,10.85,13.12,13.94,21.43c3.21,8.61,4.04,17.51,2.7,25.96 C113.59,75.85,110,84,104.4,90.96c-2.47,3.07-5.12,5.78-7.91,8.13c-9.59,8.07-21.03,12.15-32.5,12.26 c-11.47,0.11-23-3.76-32.76-11.61c-2.9-2.33-5.62-4.98-8.13-7.97c-6.92-8.22-10.77-18.09-11.65-28.2 c-0.91-10.38,1.32-20.99,6.57-30.33c1.59-2.82,3.21-5.07,5.01-7.24l0.53,14.7c0.07,2.02,1.76,3.6,3.78,3.53 c2.02-0.07,3.6-1.76,3.53-3.78l-0.85-23.42c-0.07-2.02-1.76-3.59-3.78-3.52c-0.13,0.01-0.25,0.02-0.37,0.03v0l-22.7,3.19 c-2,0.28-3.4,2.12-3.12,4.13c0.28,2,2.12,3.4,4.13,3.12L16.68,22.2L16.68,22.2L16.68,22.2z M85.78,58.71L53.11,80.65V37.12 L85.78,58.71L85.78,58.71z"/>
+                    </svg>
+                  </div>
+                )}
+              </div>
             ) : (
               <img
-                key={currentQuestion._id} // Reset img dla każdego pytania
+                key={currentQuestion._id}
                 src={"/materialy/" + currentQuestion.media}
                 alt="media"
-                onLoad={() => setIsLoading(false)} // Obsługa załadowania obrazu
+                onLoad={() => setIsLoading(false)}
                 onError={() => setIsLoading(false)}
                 style={{ width: '100%', height: 'auto' }}
               />
             )
           ) : (
             <img
-              key={currentQuestion._id} // Reset img dla każdego pytania
+              key={currentQuestion._id}
               src={"/materialy/brak.png"}
               alt="media"
-              onLoad={() => setIsLoading(false)} // Obsługa załadowania obrazu
+              onLoad={() => setIsLoading(false)}
               onError={() => setIsLoading(false)}
               style={{ width: '100%', height: 'auto' }}
             />
