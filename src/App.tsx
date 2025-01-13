@@ -19,10 +19,12 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false); // Flaga inicjalizacji
 
   useEffect(() => {
     const storedUser: User | null = JSON.parse(localStorage.getItem('user') || 'null');
     setUser(storedUser);
+    setIsInitialized(true); // Oznacz, że stan użytkownika został załadowany
   }, []);
 
   const handleLogin = (userData: User) => {
@@ -56,6 +58,11 @@ const App: React.FC = () => {
     return expirationDate >= currentDate;
   };
 
+  if (!isInitialized) {
+    // Wyświetl loader, dopóki stan użytkownika nie zostanie załadowany
+    return <div className="loading">Ładowanie...</div>;
+  }
+
   return (
     <Router>
       <div className="d-flex flex-column min-vh-100">
@@ -65,12 +72,35 @@ const App: React.FC = () => {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login onLogin={handleLogin} />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/tests" element={isPackageValid() ? <Tests onQuestionsFetched={handleQuestionsFetched} onStartExam={handleStartExam} /> : <Navigate to="/pricing" />} />
-            <Route path="/learn" element={isPackageValid() ? <Learn /> : <Navigate to="/pricing" />} />
-            <Route path="/exam" element={questions.length > 0 && user ? <Exam questions={questions} onAnswer={handleAnswer} userId={user._id} /> : <Home />} />
+            <Route
+              path="/tests"
+              element={
+                isPackageValid() ? (
+                  <Tests onQuestionsFetched={handleQuestionsFetched} onStartExam={handleStartExam} />
+                ) : (
+                  <Navigate to="/pricing" />
+                )
+              }
+            />
+            <Route
+              path="/learn"
+              element={
+                isPackageValid() && user ? <Learn userId={user._id} /> : <Navigate to="/pricing" />
+              }
+            />
+            <Route
+              path="/exam"
+              element={
+                questions.length > 0 && user ? (
+                  <Exam questions={questions} onAnswer={handleAnswer} userId={user._id} />
+                ) : (
+                  <Home />
+                )
+              }
+            />
             {user && <Route path="/user-stats" element={<UserStats userId={user._id} />} />}
-            {user && <Route path="/profile" element={<Profile user={user} onUserUpdate={handleLogin} />} />} {/* Przekazanie handleLogin */}
-            <Route path="/pricing" element={<Pricing user={user} onUserUpdate={handleLogin} />} /> {/* Przekazanie handleLogin */}
+            {user && <Route path="/profile" element={<Profile user={user} onUserUpdate={handleLogin} />} />}
+            <Route path="/pricing" element={<Pricing user={user} onUserUpdate={handleLogin} />} />
           </Routes>
           {isLoading && <div className="loading">Ładowanie...</div>}
         </main>

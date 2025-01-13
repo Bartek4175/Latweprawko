@@ -9,8 +9,8 @@ import axios from 'axios';
 interface ExamProps {
   questions: Question[];
   onAnswer: (questionId: string, answer: string) => void;
-  userId: string; // Dodano userId jako props
-  useOptimizedQuestions?: boolean; // Dodano flagę do sterowania algorytmem optymalizacji
+  userId: string;
+  useOptimizedQuestions?: boolean;
 }
 
 const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId }) => {
