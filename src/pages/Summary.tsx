@@ -11,11 +11,13 @@ interface SummaryProps {
   questions: Question[];
   selectedAnswers: { [key: number]: string };
   category: string;
+  isLimited: boolean;
 }
+
 
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const Summary: React.FC<SummaryProps> = ({ questions, selectedAnswers, category }) => {
+const Summary: React.FC<SummaryProps> = ({ questions, selectedAnswers, category, isLimited }) => {
   const navigate = useNavigate();
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
@@ -84,6 +86,11 @@ const Summary: React.FC<SummaryProps> = ({ questions, selectedAnswers, category 
   return (
     <div className="summary-container">
       <h2>Podsumowanie egzaminu</h2>
+      {isLimited && (
+        <p className="limited-info">
+          Używasz ograniczonej bazy pytań. Wykup pełny dostęp, aby mieć więcej pytań do nauki i egzaminu.
+        </p>
+      )}
       <p className="category">Kategoria: {category}</p>
       <p className="total-points">Zdobyte punkty: {totalPoints} / {maxPoints}</p>
       <p className={`exam-result ${isPass ? 'positive' : 'negative'}`}>

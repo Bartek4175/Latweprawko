@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Tests from './pages/Tests';
 import Exam from './pages/Exam';
+import ExamDemo from './pages/Exam_demo';
 import UserStats from './pages/UserStats';
 import Profile from './pages/Profile';
 import Pricing from './pages/Pricing';
@@ -19,23 +20,31 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false); // Flaga inicjalizacji
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isLimited, setIsLimited] = useState(true);
 
   useEffect(() => {
     const storedUser: User | null = JSON.parse(localStorage.getItem('user') || 'null');
-    setUser(storedUser);
-    setIsInitialized(true); // Oznacz, że stan użytkownika został załadowany
+    if (storedUser) {
+      setUser(storedUser);
+      setIsLimited(false);
+    } else {
+      setIsLimited(true);
+    }
+    setIsInitialized(true);
   }, []);
 
   const handleLogin = (userData: User) => {
     setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData)); // Uaktualnienie w localStorage
+    localStorage.setItem('user', JSON.stringify(userData));
+    setIsLimited(false);
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    setIsLimited(true);
   };
 
   const handleQuestionsFetched = (fetchedQuestions: Question[]) => {
@@ -59,7 +68,6 @@ const App: React.FC = () => {
   };
 
   if (!isInitialized) {
-    // Wyświetl loader, dopóki stan użytkownika nie zostanie załadowany
     return <div className="loading">Ładowanie...</div>;
   }
 
@@ -75,34 +83,60 @@ const App: React.FC = () => {
             <Route
               path="/tests"
               element={
-                isPackageValid() ? (
-                  <Tests onQuestionsFetched={handleQuestionsFetched} onStartExam={handleStartExam} />
+                <Tests
+                  onQuestionsFetched={handleQuestionsFetched}
+                  onStartExam={handleStartExam}
+                  isLimited={isLimited}
+                />
+              }
+            />
+            <Route
+              path="/learn"
+              element={
+                user && isPackageValid() ? (
+                  <Learn userId={user._id} />
                 ) : (
                   <Navigate to="/pricing" />
                 )
               }
             />
             <Route
-              path="/learn"
+              path="/exam-demo"
               element={
-                isPackageValid() && user ? <Learn userId={user._id} /> : <Navigate to="/pricing" />
+                <ExamDemo
+                  questions={questions}
+                  onAnswer={handleAnswer}
+                />
               }
             />
             <Route
               path="/exam"
               element={
-                questions.length > 0 && user ? (
-                  <Exam questions={questions} onAnswer={handleAnswer} userId={user._id} />
+                questions.length > 0 || isLimited ? (
+                  <Exam
+                    questions={questions}
+                    onAnswer={handleAnswer}
+                    userId={user ? user._id : ''}
+                  />
                 ) : (
-                  <Home />
+                  <Navigate to="/" />
                 )
               }
             />
-            {user && <Route path="/user-stats" element={<UserStats userId={user._id} />} />}
+            <Route
+              path="/user-stats"
+              element={
+                user && isPackageValid() ? (
+                  <UserStats userId={user._id} />
+                ) : (
+                  <Navigate to="/pricing" />
+                )
+              }
+            />
             {user && <Route path="/profile" element={<Profile user={user} onUserUpdate={handleLogin} />} />}
             <Route path="/pricing" element={<Pricing user={user} onUserUpdate={handleLogin} />} />
           </Routes>
-          {isLoading && <div className="loading">Ładowanie...</div>}
+          {/*{isLoading && <div className="loading">Ładowanie...</div>}*/}
         </main>
         <Footer />
       </div>

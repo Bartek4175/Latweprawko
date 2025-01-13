@@ -4,57 +4,68 @@ import { useLocation } from 'react-router-dom';
 import ReactPlayer from 'react-player';
 import '../styles/Exam.css';
 import Summary from './Summary';
-import axios from 'axios';
 
 interface ExamProps {
   questions: Question[];
   onAnswer: (questionId: string, answer: string) => void;
-  userId: string;
-  useOptimizedQuestions?: boolean;
 }
 
-const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId}) => {
-  const isLimited = false;
+const Exam: React.FC<ExamProps> = ({ questions, onAnswer }) => {
+  const isLimited = true;
   const location = useLocation();
-  const { useOptimizedQuestions = true } = location.state || {};
   const { selectedCategory } = location.state || {};
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [totalQuestions] = useState(questions.length);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+  const [totalBasicQuestions, setTotalBasicQuestions] = useState(0);
+  const [totalSpecialistQuestions, setTotalSpecialistQuestions] = useState(0);
+  const [answeredBasic, setAnsweredBasic] = useState(0);
+  const [answeredSpecialist, setAnsweredSpecialist] = useState(0);
   const [timer, setTimer] = useState(1500); // 25 minut w sekundach
   const [reviewTime, setReviewTime] = useState(20); // 20 sekund na zapoznanie się z pytaniem
   const [answerTime, setAnswerTime] = useState(15); // 15 sekund na udzielenie odpowiedzi
   const [selectedAnswers, setSelectedAnswers] = useState<{ [key: number]: string }>({});
-  const [answerTimes, setAnswerTimes] = useState<{ [key: number]: number }>({}); 
-  const [answeredQuestions, setAnsweredQuestions] = useState<{ [key: number]: boolean }>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isExamEnded, setIsExamEnded] = useState(false);
   const [isMediaEnded, setIsMediaEnded] = useState(false);
   const [questionStartTime, setQuestionStartTime] = useState<number | null>(null);
 
-  const handleNextQuestion = useCallback(() => {
-    if (questionStartTime !== null) {
-      const currentTime = Date.now();
-      const timeSpent = Math.floor((currentTime - questionStartTime) / 1000);
-      console.log(`Czas spędzony na pytaniu ${currentQuestionIndex + 1}: ${timeSpent} sekund`);
-      setAnswerTimes(prev => ({ ...prev, [currentQuestionIndex]: timeSpent }));
-    }
+  useEffect(() => {
+    // Ustaw liczbę pytań dla każdej kategorii
+    const basicCount = questions.filter((q) => q.type === 'podstawowe').length;
+    const specialistCount = questions.filter((q) => q.type === 'specjalistyczne').length;
 
+    setTotalQuestions(questions.length);
+    setTotalBasicQuestions(basicCount);
+    setTotalSpecialistQuestions(specialistCount);
+    setIsLoading(false);
+  }, [questions]);
+
+  const handleNextQuestion = useCallback(() => {
     setIsLoading(true);
     setIsMediaEnded(false);
 
+    const currentQuestion = questions[currentQuestionIndex];
+
+    // Zlicz odpowiedzi na podstawowe i specjalistyczne pytania
+    if (currentQuestion.type === 'podstawowe') {
+      setAnsweredBasic((prev) => prev + 1);
+    } else if (currentQuestion.type === 'specjalistyczne') {
+      setAnsweredSpecialist((prev) => prev + 1);
+    }
+
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setCurrentQuestionIndex((prev) => prev + 1);
       setReviewTime(20);
       setAnswerTime(15);
       setQuestionStartTime(Date.now());
     } else {
       handleEndExam();
     }
-  }, [currentQuestionIndex, questions.length, questionStartTime]);
+  }, [currentQuestionIndex, questions]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTimer(prevTimer => prevTimer - 1);
+      setTimer((prevTimer) => prevTimer - 1);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -65,12 +76,12 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId}) => {
     if (isMediaEnded) {
       if (reviewTime > 0) {
         interval = setInterval(() => {
-          setReviewTime(prevReviewTime => prevReviewTime - 1);
+          setReviewTime((prev) => prev - 1);
         }, 1000);
       } else if (answerTime > 0) {
         if (!questionStartTime) setQuestionStartTime(Date.now());
         interval = setInterval(() => {
-          setAnswerTime(prevAnswerTime => prevAnswerTime - 1);
+          setAnswerTime((prev) => prev - 1);
         }, 1000);
       } else {
         handleNextQuestion();
@@ -81,38 +92,15 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId}) => {
 
   const handleAnswer = (answer: string) => {
     const currentQuestion = questions[currentQuestionIndex];
-    setSelectedAnswers({
-      ...selectedAnswers,
+    setSelectedAnswers((prev) => ({
+      ...prev,
       [currentQuestionIndex]: answer,
-    });
-    setAnsweredQuestions(a => ({
-      ...a,
-      [currentQuestionIndex]: true,
     }));
     onAnswer(currentQuestion._id, answer);
     setReviewTime(0);
   };
 
-  const handleEndExam = async () => {
-    if (questionStartTime !== null) {
-      const currentTime = Date.now();
-      const timeSpent = Math.floor((currentTime - questionStartTime) / 1000);
-      setAnswerTimes((prev) => ({ ...prev, [currentQuestionIndex]: timeSpent }));
-    }
-
-    try {
-      await axios.post('http://localhost:5000/api/test-results/save', {
-        userId,
-        answers: Object.entries(selectedAnswers).map(([index, answer]) => ({
-          questionId: questions[parseInt(index)]._id,
-          answer,
-          timeSpent: answerTimes[parseInt(index)] || 0,
-        })),
-      });
-      console.log('Wynik egzaminu zapisany.');
-    } catch (error) {
-      console.error('Błąd podczas zapisywania wyniku egzaminu:', error);
-    }
+  const handleEndExam = () => {
     setIsExamEnded(true);
   };
 
@@ -130,19 +118,12 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId}) => {
     setIsMediaEnded(true);
   };
 
-  useEffect(() => {
-    setAnsweredQuestions(a => ({
-      ...a,
-      [currentQuestionIndex]: true,
-    }));
-  }, [currentQuestionIndex]);
-
   if (isExamEnded) {
     return (
-      <Summary 
-        questions={questions} 
-        selectedAnswers={selectedAnswers} 
-        category={selectedCategory} 
+      <Summary
+        questions={questions}
+        selectedAnswers={selectedAnswers}
+        category={selectedCategory}
         isLimited={isLimited}
       />
     );
@@ -150,26 +131,24 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId}) => {
 
   return (
     <div className="exam-container">
-   {isLoading && <div className="loading">Ładowanie...</div>}
+      {isLimited && (
+        <div className="limited-info">
+          <strong>Ograniczona baza pytań. Wykup pakiet, aby uzyskać dostęp do pełnej bazy pytań.</strong>
+        </div>
+      )}
+     {isLoading && <div className="loading">Ładowanie...</div>}
       <div className="exam-header">
         <div className="points-value">Wartość punktowa: {currentQuestion.points || 0}</div>
         <div className="category">Kategoria: {selectedCategory}</div>
-        
-        <div className="timer">Czas do końca testu: {`${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}`}</div>
-        <button className="end-exam-button" onClick={handleEndExam}>Zakończ egzamin</button>
+        <div className="timer">
+          Czas do końca testu: {`${Math.floor(timer / 60)}:${('0' + (timer % 60)).slice(-2)}`}
+        </div>
+        <button className="end-exam-button" onClick={handleEndExam}>
+          Zakończ egzamin
+        </button>
         <div className="question-progress">
           Pytanie {currentQuestionIndex + 1} z {totalQuestions}
         </div>
-        {useOptimizedQuestions && (
-          <div
-            className="optimized-questions-icon"
-            title="Optymalizacja pytań włączona"
-            style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
-          >
-            <img src="/icons/lightning.png" alt="Optymalizacja pytań" style={{ width: '20px', height: '20px' }} />
-            <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Optymalizacja włączona</span>
-          </div>
-        )}
       </div>
       <div className="exam-main">
         <div className="question-media" style={{ width: '100%', maxWidth: '600px', height: 'auto' }}>
@@ -177,7 +156,7 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId}) => {
             currentQuestion.media.endsWith('.wmv') ? (
               <ReactPlayer
                 key={currentQuestionIndex}
-                url={"/materialy/" + currentQuestion.media.replace('.wmv', '.mp4')}
+                url={'/materialy/' + currentQuestion.media.replace('.wmv', '.mp4')}
                 playing
                 controls={false}
                 onPlay={handleMediaReady}
@@ -190,9 +169,12 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId}) => {
             ) : (
               <img
                 key={currentQuestionIndex}
-                src={"/materialy/" + currentQuestion.media}
+                src={'/materialy/' + currentQuestion.media}
                 alt="media"
-                onLoad={() => { handleMediaReady(); setIsMediaEnded(true); }}
+                onLoad={() => {
+                  handleMediaReady();
+                  setIsMediaEnded(true);
+                }}
                 onError={handleMediaError}
                 style={{ width: '100%', height: 'auto' }}
               />
@@ -200,9 +182,12 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId}) => {
           ) : (
             <img
               key={currentQuestionIndex}
-              src={"/materialy/brak.png"}
+              src={'/materialy/brak.png'}
               alt="media"
-              onLoad={() => { handleMediaReady(); setIsMediaEnded(true); }}
+              onLoad={() => {
+                handleMediaReady();
+                setIsMediaEnded(true);
+              }}
               onError={handleMediaError}
               style={{ width: '100%', height: 'auto' }}
             />
@@ -211,29 +196,32 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId}) => {
         <div className="question-content">
           <div className="question-text">{currentQuestion.content || 'Brak treści pytania'}</div>
           <div className="answers">
-            {currentQuestion.answers && currentQuestion.answers.map((answer: Answer, index: number) => (
-              <button
-                key={index}
-                onClick={() => handleAnswer(answer.option)}
-                className={`answer-button ${selectedAnswers[currentQuestionIndex] === answer.option ? 'selected' : ''}`}
-              >
-                {answer.content}
-              </button>
-            ))}
+            {currentQuestion.answers &&
+              currentQuestion.answers.map((answer: Answer, index: number) => (
+                <button
+                  key={index}
+                  onClick={() => handleAnswer(answer.option)}
+                  className={`answer-button ${
+                    selectedAnswers[currentQuestionIndex] === answer.option ? 'selected' : ''
+                  }`}
+                >
+                  {answer.content}
+                </button>
+              ))}
           </div>
         </div>
       </div>
       <div className="exam-footer">
-  <div className="question-counter">
-    Pytania podstawowe: {Object.keys(answeredQuestions).filter(key => questions[parseInt(key)].type === 'podstawowe').length} z 20
-  </div>
-  <div className="question-counter">
-    Pytania specjalistyczne: {Object.keys(answeredQuestions).filter(key => questions[parseInt(key)].type === 'specjalistyczne').length} z 12
-  </div>
-  <div className="question-timer">
-    {reviewTime > 0 ? `Czas na zapoznanie się: ${reviewTime}s` : `Czas na odpowiedź: ${answerTime}s`}
-  </div>
-  {currentQuestionIndex === questions.length - 1 ? (
+        <div className="question-counter">
+          Pytania podstawowe: {answeredBasic} z {totalBasicQuestions}
+        </div>
+        <div className="question-counter">
+          Pytania specjalistyczne: {answeredSpecialist} z {totalSpecialistQuestions}
+        </div>
+        <div className="question-timer">
+          {reviewTime > 0 ? `Czas na zapoznanie się: ${reviewTime}s` : `Czas na odpowiedź: ${answerTime}s`}
+        </div>
+        {currentQuestionIndex === questions.length - 1 ? (
     <button className="end-exam-button" onClick={handleEndExam}>
       Zakończ egzamin
     </button>
@@ -242,8 +230,8 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer, userId}) => {
       Następne
     </button>
   )}
-</div>
-
+      </div>
+      
     </div>
   );
 };

@@ -47,7 +47,7 @@ body {
 }
 
 .container {
-  margin: 50px auto !important; /* Adjust to avoid overlap with the navbar */
+  margin: 50px auto !important;
   padding: 2rem 1rem;
 }
 

@@ -1,37 +1,63 @@
 import React from 'react';
-import { Container, Card } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+import { Container, Card, Button } from 'react-bootstrap';
 import '../styles/Home.css';
 
 const Home: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleStartTest = () => {
+    navigate('/tests');
+  };
+
   return (
     <Container className="home-container">
       <Card className="welcome-card">
         <Card.Body>
-          <h1>Witaj!</h1>
-          <p>Dzięki LatwePrawko bez problemów zdasz egzamin teoretyczny na prawo jazdy! Rozpocznij naukę już teraz.</p>
+          <h1>Testy na prawo jazdy 2025 – Zdaj teorię bez problemów!</h1>
+          <p>
+            LatwePrawko to najlepszy sposób na zdanie egzaminu teoretycznego na prawo jazdy w 2025 roku. 
+            Oferujemy najnowsze pytania egzaminacyjne oraz interaktywny sposób nauki, który przygotuje Cię na każdy scenariusz.
+          </p>
         </Card.Body>
       </Card>
       <Card className="info-card">
         <Card.Body>
-          <h2>Dlaczego warto korzystać z LatwePrawko?</h2>
+          <h2>Dlaczego warto wybrać LatwePrawko?</h2>
           <ul>
-            <li>Intuicyjny interfejs użytkownika</li>
-            <li>Aktualne pytania egzaminacyjne</li>
-            <li>Tryb nauki i egzaminu próbnego</li>
-            <li>Szczegółowe statystyki wyników</li>
-            <li>Możliwość nauki w dowolnym miejscu i czasie</li>
+            <li>🌟 <strong>Najbardziej aktualne pytania egzaminacyjne 2025</strong> – zgodne z najnowszymi wytycznymi.
+            </li>
+            <li>🚗 <strong>Tryb nauki i testów</strong> – ucz się w swoim tempie lub sprawdź swoje postępy w trybie egzaminacyjnym.
+            </li>
+            <li>📊 <strong>Szczegółowe statystyki</strong> – analizuj swoje wyniki i skup się na najtrudniejszych pytaniach.
+            </li>
+            <li>📱 <strong>Dostępność 24/7</strong> – ucz się gdziekolwiek jesteś, na komputerze lub telefonie.
+            </li>
+            <li>🧠 <strong>Optymalizacja nauki</strong> – nasz system dopasowuje pytania do Twoich wyników.
+            </li>
           </ul>
         </Card.Body>
       </Card>
       <Card className="start-card">
         <Card.Body>
-          <h2>Jak zacząć?</h2>
-          <p>Aby rozpocząć, zaloguj się na swoje konto, a następnie wybierz jedną z opcji:</p>
+          <h2>Jak rozpoczać swoją drogę do prawa jazdy w 2025?</h2>
+          <p>
+            Rozpocznij już dziś! Rejestracja zajmuje tylko kilka minut. Po zalogowaniu się wybierz jedną z poniższych opcji:
+          </p>
           <ul>
-            <li><strong>Testy:</strong> Rozpocznij egzamin próbny</li>
-            <li><strong>Nauka:</strong> Ucz się pytań w trybie nauki</li>
-            <li><strong>Statystyki:</strong> Przeglądaj swoje wyniki</li>
+            <li>
+              <strong>Testy na prawo jazdy 2025:</strong> Symulacja prawdziwego egzaminu – 32 pytania w czasie rzeczywistym.
+            </li>
+            <li>
+              <strong>Tryb nauki:</strong> Ucz się pytań tematycznie, poznając odpowiedzi i wyjaśnienia.
+            </li>
+            <li>
+              <strong>Statystyki:</strong> Sprawdzaj swoje postępy, identyfikuj słabe strony i przygotuj się jeszcze lepiej.
+            </li>
           </ul>
+          <Button variant="primary" onClick={handleStartTest} className="start-test-button">
+            Rozpocznij testowy egzamin
+          </Button>
         </Card.Body>
       </Card>
     </Container>

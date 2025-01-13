@@ -24,7 +24,7 @@ export interface TestResult {
     questionId: string;
     answer: string;
     correct: boolean;
-    timeSpent?: number; // czas odpowiedzi w sekundach
+    timeSpent?: number;
   }[];
 }
 

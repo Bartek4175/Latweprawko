@@ -19,9 +19,9 @@ const NavigationBar: React.FC<NavbarProps> = ({ user, onLogout }) => {
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="me-auto">
           <Nav.Link as={Link} to="/pricing">Cennik</Nav.Link>
+          <Nav.Link as={Link} to="/tests">Testy</Nav.Link>
           {user && (
             <>
-              <Nav.Link as={Link} to="/tests">Testy</Nav.Link>
               <Nav.Link as={Link} to="/learn">Nauka</Nav.Link>
               <Nav.Link as={Link} to="/user-stats">Statystyki</Nav.Link>
             </>

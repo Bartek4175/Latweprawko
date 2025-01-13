@@ -17,6 +17,7 @@ const packages = [
     pricePerDay: 9.99 / 3,
     features: [
       'Dostęp do pełnej bazy pytań',
+      'Dostęp do wszystkich kategorii prawa jazdy',
       'Zaawansowany algorytm wspomagający naukę',
       'Dostęp do statystyk i postępów',
       'Dostęp do nauki i przerabiania pytań',
@@ -25,10 +26,11 @@ const packages = [
   {
     name: '30 dni',
     duration: 30,
-    price: 29.99,
-    pricePerDay: 29.99 / 30,
+    price: 19.99,
+    pricePerDay: 19.99 / 30,
     features: [
       'Dostęp do pełnej bazy pytań',
+      'Dostęp do wszystkich kategorii prawa jazdy',
       'Zaawansowany algorytm wspomagający naukę',
       'Dostęp do statystyk i postępów',
       'Dostęp do nauki i przerabiania pytań',
@@ -37,10 +39,11 @@ const packages = [
   {
     name: '90 dni',
     duration: 90,
-    price: 49.99,  // Zaktualizowana cena pakietu 90 dni
-    pricePerDay: 49.99 / 90,  // Nowa cena dzienna
+    price: 39.99, 
+    pricePerDay: 39.99 / 90,
     features: [
       'Dostęp do pełnej bazy pytań',
+      'Dostęp do wszystkich kategorii prawa jazdy',
       'Zaawansowany algorytm wspomagający naukę',
       'Dostęp do statystyk i postępów',
       'Dostęp do nauki i przerabiania pytań',
@@ -79,9 +82,9 @@ const Pricing: React.FC<PricingProps> = ({ user, onUserUpdate }) => {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
-      setMessage(`Pakiet na ${days} dni został zakupiony. Nowa data wygaśnięcia: ${new Date(response.data.packageExpiration).toLocaleDateString()}`);
+      setMessage(`Pakiet na ${days} dni został zakupiony. Nowa data wygaśnięcia dostępu: ${new Date(response.data.packageExpiration).toLocaleDateString()}`);
       setError(null);
-      await fetchUserData(); // Odśwież dane użytkownika po zakupie pakietu
+      await fetchUserData();
     } catch (error) {
       setError('Błąd podczas zakupu pakietu.');
       setMessage(null);
