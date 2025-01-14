@@ -25,15 +25,13 @@ const Home: React.FC = () => {
         <Card.Body>
           <h2>Dlaczego warto wybrać LatwePrawko?</h2>
           <ul>
-            <li>🌟 <strong>Najbardziej aktualne pytania egzaminacyjne 2025</strong> – zgodne z najnowszymi wytycznymi ministerstwa.
+            <li><strong>Aktualne pytania egzaminacyjne 2025</strong> – zgodne z najnowszymi wytycznymi ministerstwa, takie same jak na egzaminie!
             </li>
-            <li>🚗 <strong>Tryb nauki i testów</strong> – ucz się w swoim tempie lub sprawdź swoje postępy w trybie egzaminacyjnym.
+            <li><strong>Tryb nauki i testów</strong> – ucz się w swoim tempie lub sprawdź swoje postępy w trybie egzaminacyjnym.
             </li>
-            <li>📊 <strong>Szczegółowe statystyki</strong> – analizuj swoje wyniki i skup się na najtrudniejszych pytaniach.
+            <li><strong>Szczegółowe statystyki</strong> – analizuj swoje wyniki i skup się na najtrudniejszych pytaniach.
             </li>
-            <li>📱 <strong>Dostępność 24/7</strong> – ucz się gdziekolwiek jesteś, na komputerze lub telefonie.
-            </li>
-            <li>🧠 <strong>Optymalizacja nauki</strong> – nasz system dopasowuje pytania do Twoich wyników.
+            <li><strong>Optymalizacja nauki</strong> – nasz system dopasowuje pytania do Twoich wyników.
             </li>
           </ul>
         </Card.Body>
@@ -42,7 +40,7 @@ const Home: React.FC = () => {
         <Card.Body>
           <h2>Jak rozpoczać swoją drogę do prawa jazdy w 2025?</h2>
           <p>
-            Rozpocznij już dziś! Rejestracja zajmuje tylko kilka minut. Po zalogowaniu się wybierz jedną z poniższych opcji:
+            Rozpocznij testowy egzamin bez rejestracji już dziś! Po rejestracji oraz zakupie pakietu otrzymasz dostęp do pełnej bazy pytań, trybu nauki i statystyk wykonanych egzaminów.
           </p>
           <ul>
             <li>
