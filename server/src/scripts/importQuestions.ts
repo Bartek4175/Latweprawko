@@ -66,7 +66,7 @@ let type;
       content,
       media,
       points,
-      category: kategorie.split(',').map(cat => cat.trim()).join(','), // Kategorie jako ciąg znaków
+      category: kategorie.split(',').map(cat => cat.trim()).join(','),
       answers,
       type,
     });

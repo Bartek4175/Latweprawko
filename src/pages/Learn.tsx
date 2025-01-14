@@ -30,6 +30,7 @@ const Learn: React.FC<LearnProps> = ({ userId }) => {
 
   const fetchRandomQuestion = async () => {
     try {
+      //console.log('fetch')
       setIsLoading(true);
       setShowExplanation(false);
       setExplanation(null);
@@ -88,6 +89,7 @@ const Learn: React.FC<LearnProps> = ({ userId }) => {
   };
 
   useEffect(() => {
+    //console.log('useEffect triggered');
     fetchRandomQuestion();
     fetchTotalQuestions();
     fetchCompletedQuestions();

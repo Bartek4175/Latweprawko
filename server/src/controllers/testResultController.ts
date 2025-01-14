@@ -6,7 +6,6 @@ export const saveTestResult = async (req: Request, res: Response) => {
   const { userId, answers } = req.body;
 
   try {
-    // Oblicz wynik testu
     let score = 0;
     const detailedAnswers = await Promise.all(answers.map(async (answer: { questionId: string, answer: string }) => {
       const question = await Question.findById(answer.questionId);
@@ -25,7 +24,6 @@ export const saveTestResult = async (req: Request, res: Response) => {
 
     console.log('Filtered Answers:', filteredAnswers);
 
-    // Zapisz wynik testu
     const testResult = new TestResult({
       userId,
       score,
@@ -37,7 +35,7 @@ export const saveTestResult = async (req: Request, res: Response) => {
     await testResult.save();
     res.status(201).json({ message: 'Wynik testu zapisany pomyślnie', testResult });
   } catch (error) {
-    console.error('Błąd podczas zapisu wyniku testu:', error); // Log błędu
+    console.error('Błąd podczas zapisu wyniku testu:', error);
     res.status(500).json({ message: 'Błąd serwera', error });
   }
 };

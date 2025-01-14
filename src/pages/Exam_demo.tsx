@@ -30,7 +30,6 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer }) => {
   const [questionStartTime, setQuestionStartTime] = useState<number | null>(null);
 
   useEffect(() => {
-    // Ustaw liczbę pytań dla każdej kategorii
     const basicCount = questions.filter((q) => q.type === 'podstawowe').length;
     const specialistCount = questions.filter((q) => q.type === 'specjalistyczne').length;
 
@@ -46,7 +45,6 @@ const Exam: React.FC<ExamProps> = ({ questions, onAnswer }) => {
 
     const currentQuestion = questions[currentQuestionIndex];
 
-    // Zlicz odpowiedzi na podstawowe i specjalistyczne pytania
     if (currentQuestion.type === 'podstawowe') {
       setAnsweredBasic((prev) => prev + 1);
     } else if (currentQuestion.type === 'specjalistyczne') {

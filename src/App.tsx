@@ -13,13 +13,14 @@ import NavigationBar from './components/Navbar';
 import Footer from './components/Footer';
 import { Question, User } from './types';
 import Learn from './pages/Learn';
+import Rules from './pages/Rules';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/index.css';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  {/*const [isLoading, setIsLoading] = useState(false);*/}
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLimited, setIsLimited] = useState(true);
 
@@ -49,7 +50,7 @@ const App: React.FC = () => {
 
   const handleQuestionsFetched = (fetchedQuestions: Question[]) => {
     setQuestions(fetchedQuestions);
-    setIsLoading(false);
+     {/*setIsLoading(false);*/}
   };
 
   const handleAnswer = (questionId: string, answer: string) => {
@@ -57,7 +58,7 @@ const App: React.FC = () => {
   };
 
   const handleStartExam = () => {
-    setIsLoading(true);
+     {/* setIsLoading(true);*/}
   };
 
   const isPackageValid = () => {
@@ -135,6 +136,7 @@ const App: React.FC = () => {
             />
             {user && <Route path="/profile" element={<Profile user={user} onUserUpdate={handleLogin} />} />}
             <Route path="/pricing" element={<Pricing user={user} onUserUpdate={handleLogin} />} />
+            <Route path="/rules" element={<Rules />} />
           </Routes>
           {/*{isLoading && <div className="loading">Ładowanie...</div>}*/}
         </main>

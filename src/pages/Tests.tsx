@@ -57,12 +57,11 @@ const Tests: React.FC<TestsProps> = ({ onQuestionsFetched, onStartExam, isLimite
   };
 
   const handleStartExam = async () => {
-    setIsFetchingQuestions(true); // Rozpocznij ładowanie
-    await fetchQuestions(); // Poczekaj na pobranie pytań
-    setIsFetchingQuestions(false); // Zakończ ładowanie
+    setIsFetchingQuestions(true);
+    await fetchQuestions();
+    setIsFetchingQuestions(false);
     onStartExam();
 
-    // Nawiguj użytkownika do odpowiedniej ścieżki
     const targetPath =
       isLimited || !hasPremiumAccess ? '/exam-demo' : '/exam';
     navigate(targetPath, {

@@ -17,7 +17,7 @@ const Home: React.FC = () => {
           <h1>Testy na prawo jazdy 2025 – Zdaj teorię bez problemów!</h1>
           <p>
             LatwePrawko to najlepszy sposób na zdanie egzaminu teoretycznego na prawo jazdy w 2025 roku. 
-            Oferujemy najnowsze pytania egzaminacyjne oraz interaktywny sposób nauki, który przygotuje Cię na każdy scenariusz.
+            Oferujemy orygialne pytania egzaminacyjne oraz interaktywny sposób nauki, który przygotuje Cię na każdy scenariusz.
           </p>
         </Card.Body>
       </Card>
@@ -25,7 +25,7 @@ const Home: React.FC = () => {
         <Card.Body>
           <h2>Dlaczego warto wybrać LatwePrawko?</h2>
           <ul>
-            <li>🌟 <strong>Najbardziej aktualne pytania egzaminacyjne 2025</strong> – zgodne z najnowszymi wytycznymi.
+            <li>🌟 <strong>Najbardziej aktualne pytania egzaminacyjne 2025</strong> – zgodne z najnowszymi wytycznymi ministerstwa.
             </li>
             <li>🚗 <strong>Tryb nauki i testów</strong> – ucz się w swoim tempie lub sprawdź swoje postępy w trybie egzaminacyjnym.
             </li>
@@ -46,7 +46,7 @@ const Home: React.FC = () => {
           </p>
           <ul>
             <li>
-              <strong>Testy na prawo jazdy 2025:</strong> Symulacja prawdziwego egzaminu – 32 pytania w czasie rzeczywistym.
+              <strong>Testy na prawo jazdy 2025:</strong> Symulacja prawdziwego egzaminu, jak w WORD!
             </li>
             <li>
               <strong>Tryb nauki:</strong> Ucz się pytań tematycznie, poznając odpowiedzi i wyjaśnienia.
@@ -55,9 +55,11 @@ const Home: React.FC = () => {
               <strong>Statystyki:</strong> Sprawdzaj swoje postępy, identyfikuj słabe strony i przygotuj się jeszcze lepiej.
             </li>
           </ul>
-          <Button variant="primary" onClick={handleStartTest} className="start-test-button">
+          <p>
+            <Button variant="primary" onClick={handleStartTest} className="start-test-button">
             Rozpocznij testowy egzamin
           </Button>
+          </p>
         </Card.Body>
       </Card>
     </Container>

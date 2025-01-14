@@ -150,46 +150,38 @@ const getOptimizedExamQuestions = async (req: Request, res: Response) => {
 
 const getLimitedExamQuestions = async (req: Request, res: Response) => {
   try {
-    // Pobierz 100 pytań z kategorii B
     const limitedQuestions = await Question.find({ category: 'B' })
-      .sort({ _id: 1 }) // Stałe sortowanie po _id (rosnąco)
-      .limit(100); // Ograniczenie do 100 pytań
+      .sort({ _id: 1 })
+      .limit(100);
 
     if (!limitedQuestions.length) {
       return res.status(404).json({ message: 'Brak pytań w ograniczonej bazie.' });
     }
 
-    // Podziel pytania na podstawowe i specjalistyczne
     const basicQuestions = limitedQuestions.filter((q) => q.type === 'podstawowe');
     const specialistQuestions = limitedQuestions.filter((q) => q.type === 'specjalistyczne');
 
-    // Upewnij się, że mamy wystarczającą liczbę pytań
     if (basicQuestions.length < 20 || specialistQuestions.length < 12) {
       return res.status(500).json({ message: 'Nieprawidłowa liczba pytań w ograniczonej bazie.' });
     }
 
-    // Wybierz pytania podstawowe według punktacji
     const selectedBasicQuestions = [
       ...basicQuestions.filter((q) => q.points === 3).slice(0, 10),
       ...basicQuestions.filter((q) => q.points === 2).slice(0, 6),
       ...basicQuestions.filter((q) => q.points === 1).slice(0, 4),
     ];
 
-    // Wybierz pytania specjalistyczne według punktacji
     const selectedSpecialistQuestions = [
       ...specialistQuestions.filter((q) => q.points === 3).slice(0, 6),
       ...specialistQuestions.filter((q) => q.points === 2).slice(0, 4),
       ...specialistQuestions.filter((q) => q.points === 1).slice(0, 2),
     ];
 
-    // Losowo przetasuj pytania
     const shuffledBasicQuestions = selectedBasicQuestions.sort(() => Math.random() - 0.5);
     const shuffledSpecialistQuestions = selectedSpecialistQuestions.sort(() => Math.random() - 0.5);
 
-    // Połącz pytania w zestaw egzaminacyjny
     const examQuestions = [...shuffledBasicQuestions, ...shuffledSpecialistQuestions];
 
-    // Sprawdź, czy mamy dokładnie 32 pytania (20 podstawowych + 12 specjalistycznych)
     if (examQuestions.length !== 32) {
       console.error('Nieprawidłowa liczba pytań:', examQuestions.length);
       return res.status(500).json({ message: 'Nieprawidłowe dane pytań.' });
@@ -201,7 +193,5 @@ const getLimitedExamQuestions = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Błąd serwera.' });
   }
 };
-
-
 
 export { getExamQuestions, saveAnswerTimes, getOptimizedExamQuestions, getLimitedExamQuestions };

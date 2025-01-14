@@ -7,11 +7,16 @@ import '../styles/Auth.css';
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [acceptRules, setAcceptRules] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptRules) {
+      setError('Musisz zaakceptować regulamin, aby się zarejestrować.');
+      return;
+    }
     try {
       await register(email, password);
       setError('');
@@ -44,6 +49,22 @@ const Register: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="form-control"
+          />
+        </Form.Group>
+        <Form.Group controlId="formAcceptRules" className="mb-3">
+          <Form.Check
+            type="checkbox"
+            label={
+              <>
+                Akceptuję{' '}
+                <a href="/rules" target="_blank" rel="noopener noreferrer">
+                  regulamin
+                </a>
+              </>
+            }
+            checked={acceptRules}
+            onChange={(e) => setAcceptRules(e.target.checked)}
+            required
           />
         </Form.Group>
         <Button variant="primary" type="submit" className="auth-button">
