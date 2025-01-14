@@ -6,6 +6,7 @@ export interface IUser extends Document {
   role: 'user' | 'admin';
   packageExpiration?: Date; 
   useOptimizedQuestions: boolean;
+  googleId: string;
 }
 
 const UserSchema: Schema = new Schema({
@@ -13,7 +14,8 @@ const UserSchema: Schema = new Schema({
   password: { type: String, required: true },
   role: { type: String, required: true, default: 'user' },
   packageExpiration: { type: Date },
-  useOptimizedQuestions: { type: Boolean, default: true }
+  useOptimizedQuestions: { type: Boolean, default: true },
+  googleId: { type: String, required: false }
 });
 
 export default mongoose.model<IUser>('User', UserSchema);

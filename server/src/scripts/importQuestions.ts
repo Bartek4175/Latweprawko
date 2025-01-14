@@ -39,17 +39,14 @@ const importQuestions = async () => {
     }
 
     let answers;
-    //let type = answers.length > 1 ? 'specjalistyczne' : 'podstawowe';
-let type;
+    let type;
     if (poprawnaOdp === 'Tak' || poprawnaOdp === 'Nie') {
-      // Dla pytań typu "tak/nie"
       type = 'podstawowe';
       answers = [
         { option: 'Tak', content: 'Tak', isCorrect: poprawnaOdp === 'Tak' },
         { option: 'Nie', content: 'Nie', isCorrect: poprawnaOdp === 'Nie' },
       ];
     } else {
-      // Dla pytań z kilkoma odpowiedziami
       type = 'specjalistyczne';
       answers = [
         { option: 'A', content: odpowiedzA, isCorrect: poprawnaOdp === 'A' },
@@ -59,7 +56,7 @@ let type;
     }
     
     // Ustalenie punktów na podstawie treści pytania
-    const points = Math.floor(Math.random() * 3) + 1; // Tymczasowa losowa ocena
+    const points = Math.floor(Math.random() * 3) + 1; // tymczasowo losowa ocena
 
     const question = new Question({
       numerPytania,

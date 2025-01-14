@@ -108,38 +108,40 @@ const Profile: React.FC<ProfileProps> = ({ user, onUserUpdate }) => {
         </Alert>
       )}
       {message && <Alert variant="info">{message}</Alert>}
-      <Form>
-        <Form.Group controlId="formCurrentPassword">
-          <Form.Label>Aktualne hasło</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Wpisz aktualne hasło"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-          />
-        </Form.Group>
-        <Form.Group controlId="formNewPassword">
-          <Form.Label>Nowe hasło</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Wpisz nowe hasło"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
-        </Form.Group>
-        <Form.Group controlId="formConfirmNewPassword">
-          <Form.Label>Potwierdź nowe hasło</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Potwierdź nowe hasło"
-            value={confirmNewPassword}
-            onChange={(e) => setConfirmNewPassword(e.target.value)}
-          />
-        </Form.Group>
-        <Button variant="primary" onClick={handlePasswordChange}>
-          Zmień hasło
-        </Button>
-      </Form>
+      {!user.googleId && (
+        <Form>
+          <Form.Group controlId="formCurrentPassword">
+            <Form.Label>Aktualne hasło</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="Wpisz aktualne hasło"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+          </Form.Group>
+          <Form.Group controlId="formNewPassword">
+            <Form.Label>Nowe hasło</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="Wpisz nowe hasło"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+          </Form.Group>
+          <Form.Group controlId="formConfirmNewPassword">
+            <Form.Label>Potwierdź nowe hasło</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="Potwierdź nowe hasło"
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
+            />
+          </Form.Group>
+          <Button variant="primary" onClick={handlePasswordChange}>
+            Zmień hasło
+          </Button>
+        </Form>
+      )}
       <Form className="mt-4">
         <Form.Group controlId="formUseOptimizedQuestions">
           <Form.Check

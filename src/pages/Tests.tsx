@@ -20,9 +20,14 @@ const Tests: React.FC<TestsProps> = ({ onQuestionsFetched, onStartExam, isLimite
 
   useEffect(() => {
     const fetchUserData = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        return; 
+      }
+
       try {
         const response = await axios.get('http://localhost:5000/api/users/me', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
         setUserId(response.data._id);
         setUseOptimizedQuestions(response.data.useOptimizedQuestions);
@@ -33,12 +38,12 @@ const Tests: React.FC<TestsProps> = ({ onQuestionsFetched, onStartExam, isLimite
         );
       } catch (error) {
         console.error('Błąd podczas pobierania danych użytkownika:', error);
-        setHasPremiumAccess(false);
       }
     };
-
+  
     fetchUserData();
   }, []);
+  
 
   const fetchQuestions = async () => {
     const endpoint =

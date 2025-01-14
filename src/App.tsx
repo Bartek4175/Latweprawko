@@ -46,6 +46,7 @@ const App: React.FC = () => {
     localStorage.removeItem('user');
     setUser(null);
     setIsLimited(true);
+    return <Navigate to="/" replace />;
   };
 
   const handleQuestionsFetched = (fetchedQuestions: Question[]) => {

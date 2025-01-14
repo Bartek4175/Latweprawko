@@ -34,4 +34,5 @@ export interface User {
   role: 'user' | 'admin';
   packageExpiration?: Date;
   useOptimizedQuestions: boolean;
+  googleId?: string;
 }

@@ -10,6 +10,7 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-export const register = (email: string, password: string) => API.post('/users/register', { email, password });
-export const login = (email: string, password: string) => API.post('/users/login', { email, password });
+export const register = (email: string, password: string, googleId?: string) => API.post('/users/register', { email, password, googleId });
+export const login = (email: string, password: string, googleId?: string) => API.post('/users/login', { email, password, googleId });
+
 export const fetchUserProfile = () => API.get('/users/profile');

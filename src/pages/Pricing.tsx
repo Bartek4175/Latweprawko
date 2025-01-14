@@ -106,30 +106,33 @@ const Pricing: React.FC<PricingProps> = ({ user, onUserUpdate }) => {
       {message && <Alert variant="success" onClose={() => setMessage(null)} dismissible>{message}</Alert>}
       {error && <Alert variant="danger" onClose={() => setError(null)} dismissible>{error}</Alert>}
       <Row>
-        {packages.map((pkg) => (
-          <Col md={4} key={pkg.duration}>
-            <Card className="mb-4">
-              <Card.Body>
-                <Card.Title>{pkg.name}</Card.Title>
-                <Card.Text>
-                  <strong>Cena: {pkg.price} zł</strong>
-                  <br />
-                  <strong>Co zawiera pakiet:</strong>
-                  <div style={{ paddingLeft: '20px' }}>
-                    {pkg.features.map((feature, index) => (
-                      <div key={index}>{feature}</div>
-                    ))}
-                  </div>
-                  <strong>Cena dzienna: {getPricePerDay(pkg.price, pkg.duration)} zł</strong>
-                </Card.Text>
-                <Button variant="primary" onClick={() => handlePurchase(pkg.duration)}>
-                  Kup teraz
-                </Button>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row>
+  {packages.map((pkg) => (
+    <Col md={4} key={pkg.duration}>
+      <Card className="mb-4">
+        <Card.Body>
+          <Card.Title>{pkg.name}</Card.Title>
+          <Card.Text>
+            <strong>Cena: {pkg.price} zł</strong>
+            <br />
+            <strong>Co zawiera pakiet:</strong>
+          </Card.Text>
+          <ul style={{ paddingLeft: '20px' }}>
+            {pkg.features.map((feature, index) => (
+              <li key={index}>{feature}</li>
+            ))}
+          </ul>
+          <Card.Text>
+            <strong>Cena dzienna: {getPricePerDay(pkg.price, pkg.duration)} zł</strong>
+          </Card.Text>
+          <Button variant="primary" onClick={() => handlePurchase(pkg.duration)}>
+            Kup teraz
+          </Button>
+        </Card.Body>
+      </Card>
+    </Col>
+  ))}
+</Row>
+
     </Container>
   );
 };

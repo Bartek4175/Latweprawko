@@ -83,3 +83,14 @@ button {
 button:hover {
   background-color: #218838;
 }
+
+ul {
+  padding-left: 0;
+  list-style-type: none;
+  margin: 0;
+}
+
+ul li {
+  padding: 5px 0;
+  text-align: left;
+}
